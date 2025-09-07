@@ -22,6 +22,9 @@
 
 # misc
 .DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 *.pem
 
 # debug
@@ -40,4 +43,16 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# prisma (자동 생성물)
+/prisma/generated/
+/prisma/client/
 /app/generated/prisma
+
+# IDEs / Editors
+.idea/
+*.iml
+.vscode/
+
+# docker volumes (로컬 데이터)
+/pg_data/
+docker-data/
