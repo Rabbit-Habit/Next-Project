@@ -16,13 +16,42 @@ datasource db {
 }
 
 model User {
-  userId    Int      @id @default(autoincrement())
-  id        String   @unique
-  password  String?
-  isSocial  Boolean  @default(false)
-  imageUrl  String?
-  nickname  String   @unique
-  isDeleted Boolean  @default(false)
-  regDate   DateTime @default(now())
-  modDate   DateTime @updatedAt
+  userId      Int           @id @default(autoincrement())
+  id          String        @unique
+  password    String?
+  isSocial    Boolean       @default(false)
+  imageUrl    String?
+  nickname    String        @unique
+  isDeleted   Boolean       @default(false)
+  regDate     DateTime      @default(now())
+  modDate     DateTime      @updatedAt
+  ChatMessage ChatMessage[]
+}
+
+// 채팅
+model ChatChannel {
+  channel_id Int      @id @default(autoincrement())
+  habit_id   Int
+  reg_date   DateTime @default(now())
+
+  // 관계
+  messages ChatMessage[]
+
+  @@map("tbl_chat_channels")
+}
+
+model ChatMessage {
+  message_id Int      @id @default(autoincrement())
+  channel_id Int
+  user_id    Int
+  content    String
+  reg_date   DateTime @default(now())
+
+  // 관계
+  channel ChatChannel @relation(fields: [channel_id], references: [channel_id])
+  user    User        @relation(fields: [user_id], references: [userId])
+
+  // 인덱스 추가 (channel_id + reg_date)
+  @@index([channel_id, reg_date], name: "idx_channel_date")
+  @@map("tbl_chat_message")
 }
