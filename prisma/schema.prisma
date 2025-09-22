@@ -16,16 +16,18 @@ datasource db {
 }
 
 model User {
-  userId      Int           @id @default(autoincrement())
+  userId      Int           @id @default(autoincrement()) @map("user_id")
   id          String        @unique
   password    String?
-  isSocial    Boolean       @default(false)
-  imageUrl    String?
+  isSocial    Boolean       @default(false) @map("is_social")
+  imageUrl    String?       @map("image_url")
   nickname    String        @unique
-  isDeleted   Boolean       @default(false)
-  regDate     DateTime      @default(now())
-  modDate     DateTime      @updatedAt
+  isDeleted   Boolean       @default(false) @map("is_deleted")
+  regDate     DateTime      @default(now()) @map("reg_date")
+  modDate     DateTime      @updatedAt @map("mod_date")
   ChatMessage ChatMessage[]
+
+  @@map("tbl_user")
 }
 
 // 채팅

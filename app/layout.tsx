@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import {loadByCookie} from "@/app/auth/login/actions";
+import ClientProvider from "@/app/components/clientProvider";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -18,18 +20,16 @@ export const metadata: Metadata = {
     manifest: '/manifest.json',
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
-    </html>
-  );
+export default async function RootLayout({children,}: Readonly<{ children: React.ReactNode; }>) {
+    const uid = await loadByCookie()
+
+    return (
+        <html lang="en">
+            <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+                <ClientProvider uid={uid}>
+                    {children}
+                </ClientProvider>
+            </body>
+        </html>
+    )
 }
