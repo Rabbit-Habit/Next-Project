@@ -57,3 +57,73 @@ model ChatMessage {
   @@index([channel_id, reg_date], name: "idx_channel_date")
   @@map("tbl_chat_message")
 }
+
+model Team {
+  teamId    BigInt        @id @default(autoincrement()) @map("team_id") @db.BigInt
+  name      String?
+  regDate   DateTime      @default(now())
+
+  members   TeamMember[]
+  habit     Habit?
+  @@map("tbl_team")
+}
+
+enum RabbitStatus {
+  alive
+  hungry
+  escaped
+}
+
+/// Habit 테이블
+model Habit {
+  /// PK
+  habitId       BigInt      @id @default(autoincrement()) @map("habit_id") @db.BigInt
+
+  userId        BigInt      @map("user_id")  @db.BigInt
+  // @unique로 1:1 보장
+  teamId        BigInt      @map("team_id")  @db.BigInt @unique
+
+  /// 내용
+  title         String?     @db.VarChar(255)
+  goalDetail    String?     @map("goal_detail") @db.VarChar(255)
+  goalCount     BigInt?     @map("goal_count")  @db.BigInt
+
+  rabbitName    String      @map("rabbit_name")   @db.VarChar(255)
+  rabbitStatus  RabbitStatus @map("rabbit_status") // enum
+
+  inviteCode    String?     @map("invite_code") @db.VarChar(255)
+  combo         BigInt?     @db.BigInt
+
+  regDate       DateTime?   @map("reg_date")
+  modDate       DateTime?   @map("mod_date")
+
+  isAttendance  Boolean?    @map("is_attendance")
+
+  /// 위치(소수점)
+  targetLat     Decimal?    @map("target_lat") @db.Decimal(9, 6)
+  targetLng     Decimal?    @map("target_lng") @db.Decimal(9, 6)
+
+  // 역방향: 실제 fk는 habit이 가짐
+  team          Team        @relation(fields: [teamId], references: [teamId])
+
+  @@index([userId])
+  @@map("tbl_habit")
+}
+
+enum TeamRole {
+  LEADER
+  MEMBER
+}
+
+model TeamMember {
+  teamMemberId  BigInt    @id @default(autoincrement()) @map("team_member_id") @db.BigInt
+  teamId        BigInt
+  userId        BigInt
+  role          TeamRole //'LEADER' | 'MEMBER'
+  regDate       DateTime  @default(now())
+
+  team          Team      @relation(fields: [teamId], references: [teamId])
+
+  @@unique([teamId, userId])
+  @@map("tbl_team_member")
+}
