@@ -1,0 +1,165 @@
+'use server'
+
+import { z } from 'zod'
+import prisma from "@/lib/prisma";
+import {revalidatePath} from "next/cache";
+
+// 로그인 id 가져오기 (임시로 111 사용중)
+async function getCurrentUserId() {
+    // const session = await auth();
+    // return session?.user.id
+    return 111
+}
+
+// 초대 코드 생성기
+function generateInviteCode() {
+    const r = () => Math.random().toString(36).slice(2, 6).toUpperCase()
+    return `RH-${r()}-${r()}`
+}
+
+// 공통 입력란 검증
+const habitCore = {
+    title: z.string().min(1, '제목은 필수입니다.').max(255),
+    rabbitName: z.string().min(1, '토끼 이름은 필수입니다.').max(255),
+    goalDetail: z.string().max(255).optional().nullable(),
+    goalCount: z.coerce.number().int().min(1).max(9999).optional(),
+}
+
+const personalHabitSchema = z.object(habitCore)
+
+const teamCreateSchema = z.object({
+    teamName: z.string().min(1, '팀 이름은 필수입니다.').max(255),
+    ...habitCore,
+    generateInvite: z.boolean().optional(),
+})
+const teamJoinSchema = z.object({
+    inviteCode: z.string().min(4, '초대코드를 확인해주세요.').max(255),
+})
+
+// 개인 습관
+// 1:1 제약으로 개인 습관 만들면 자동으로 팀 한개가 만들어지는데 이거 맞지..?
+export async function createPersonalHabit(input: z.infer<typeof personalHabitSchema>) {
+    const parsed = personalHabitSchema.safeParse(input)
+    if (!parsed.success) {
+        return {ok: false, error: parsed.error.issues[0]?.message}
+    }
+    const userId = await getCurrentUserId()
+    if (!userId) return { ok: false, error: '로그인이 필요합니다.' }
+
+    const gcount = parsed.data.goalCount != null ? BigInt(parsed.data.goalCount) : null
+
+    try {
+        const res = await prisma.$transaction(async (tx)=> {
+            const team = await tx.team.create({
+                data: { name: `personal:${userId.toString()}:${Date.now()}` },
+            })
+            await tx.teamMember.create({
+                data: {
+                    teamId: team.teamId,
+                    userId,
+                    role: 'LEADER'
+                }
+            })
+            const habit = await tx.habit.create({
+                data: {
+                    teamId: team.teamId,     // UNIQUE(teamId) → 팀당 해빗 1개
+                    userId,
+                    title: parsed.data.title,
+                    goalDetail: parsed.data.goalDetail ?? null,
+                    goalCount: gcount,
+                    rabbitName: parsed.data.rabbitName,
+                    rabbitStatus: 'alive',   // 초기 상태
+                    inviteCode: null,        // 개인 습관은 기본 초대코드 없음
+                    combo: 0,
+                    isAttendance: true,
+                },
+            })
+            return { habitId: habit.habitId, teamId: team.teamId }
+        })
+
+        revalidatePath('/habits')
+        revalidatePath('/teams')
+        return { ok: true, ...res }
+    } catch (e: any) {
+        return { ok: false, error: e?.message ?? 'DB 오류가 발생' }
+    }
+}
+
+// 팀 습관
+export async function createTeamHabit(input: z.infer<typeof teamCreateSchema>) {
+    const parsed = teamCreateSchema.safeParse(input)
+    if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message }
+
+    const userId = await getCurrentUserId()
+    if (!userId) return { ok: false, error: '로그인이 필요합니다.' }
+
+    const gcount = parsed.data.goalCount != null ? BigInt(parsed.data.goalCount) : null
+    const invite = parsed.data.generateInvite ? generateInviteCode() : null
+
+    try {
+        const res = await prisma.$transaction(async (tx) => {
+            const team = await tx.team.create({
+                data: { name: parsed.data.teamName },
+            })
+            await tx.teamMember.create({
+                data: { teamId: team.teamId, userId, role: 'LEADER' },
+            })
+            const habit = await tx.habit.create({
+                data: {
+                    teamId: team.teamId, // 1:1
+                    userId,
+                    title: parsed.data.title,
+                    goalDetail: parsed.data.goalDetail ?? null,
+                    goalCount: gcount,
+                    rabbitName: parsed.data.rabbitName,
+                    rabbitStatus: 'alive',
+                    inviteCode: invite,
+                    combo: 0,
+                    isAttendance: true,
+                },
+            })
+            return { teamId: team.teamId, habitId: habit.habitId, inviteCode: invite }
+        })
+
+        revalidatePath('/teams')
+        revalidatePath('/habits')
+        return { ok: true, ...res }
+    } catch (e: any) {
+        return { ok: false, error: e?.message ?? 'DB 오류가 발생했습니다.' }
+    }
+}
+
+// 초대코드로 팀 참여
+export async function joinTeamByInvite(input: z.infer<typeof teamJoinSchema>) {
+    const parsed = teamJoinSchema.safeParse(input)
+    if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message }
+
+    const userId = await getCurrentUserId()
+    if (!userId) return { ok: false, error: '로그인이 필요합니다.' }
+
+    try {
+        const res = await prisma.$transaction(async (tx) => {
+            const habit = await tx.habit.findFirst({
+                where: { inviteCode: parsed.data.inviteCode },
+                select: { teamId: true },
+            })
+            if (!habit) return { ok: false as const, error: '유효하지 않은 초대코드입니다.' }
+
+            const exists = await tx.teamMember.findFirst({
+                where: { teamId: habit.teamId, userId },
+                select: { teamMemberId: true },
+            })
+            if (!exists) {
+                await tx.teamMember.create({
+                    data: { teamId: habit.teamId, userId, role: 'MEMBER' },
+                })
+            }
+            return { ok: true as const, teamId: habit.teamId }
+        })
+
+        revalidatePath('/teams')
+        return res
+    } catch (e: any) {
+        return { ok: false, error: e?.message ?? 'DB 오류가 발생했습니다.' }
+    }
+}
