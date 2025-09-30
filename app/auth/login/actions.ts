@@ -48,7 +48,7 @@ export async function LoginAction(formData: FormData): Promise<LoginResult> {
 
         return {
             uid: -1,
-            error: err.message || "Unknown error",
+            error: err.message || "알 수 없는 오류가 발생했습니다.",
         }
     }
 }

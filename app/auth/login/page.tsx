@@ -53,7 +53,12 @@ function AuthLoginPage() {
                     setIsModalOpen(false)
                 }}
                 title="로그인 실패"
-                description={state.error}
+                description={
+                    <>
+                        {state.error}<br />
+                        다시 시도해주세요.
+                    </>
+                }
             />
 
             <div className="min-h-screen flex flex-col items-center px-6 py-16">
