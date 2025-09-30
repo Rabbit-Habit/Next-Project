@@ -32,9 +32,9 @@ model User {
 
 // 채팅
 model ChatChannel {
-  channel_id Int      @id @default(autoincrement())
-  habit_id   Int
-  reg_date   DateTime @default(now())
+  channelId Int      @id @default(autoincrement()) @map("channel_id")
+  habitId   Int      @map("habit_id")
+  regDate   DateTime @default(now()) @map("reg_date")
 
   // 관계
   messages ChatMessage[]
@@ -43,28 +43,29 @@ model ChatChannel {
 }
 
 model ChatMessage {
-  message_id Int      @id @default(autoincrement())
-  channel_id Int
-  user_id    Int
-  content    String
-  reg_date   DateTime @default(now())
+  messageId Int      @id @default(autoincrement()) @map("message_id")
+  channelId Int      @map("channel_id")
+  userId    Int      @map("user_id")
+  content   String
+  regDate   DateTime @default(now()) @map("reg_date")
 
   // 관계
-  channel ChatChannel @relation(fields: [channel_id], references: [channel_id])
-  user    User        @relation(fields: [user_id], references: [userId])
+  channel ChatChannel @relation(fields: [channelId], references: [channelId])
+  user    User        @relation(fields: [userId], references: [userId])
 
   // 인덱스 추가 (channel_id + reg_date)
-  @@index([channel_id, reg_date], name: "idx_channel_date")
+  @@index([channelId, regDate], name: "idx_channel_date")
   @@map("tbl_chat_message")
 }
 
 model Team {
-  teamId    BigInt        @id @default(autoincrement()) @map("team_id") @db.BigInt
-  name      String?
-  regDate   DateTime      @default(now())
+  teamId  BigInt   @id @default(autoincrement()) @map("team_id") @db.BigInt
+  name    String?
+  regDate DateTime @default(now())
 
-  members   TeamMember[]
-  habit     Habit?
+  members TeamMember[]
+  habit   Habit?
+
   @@map("tbl_team")
 }
 
@@ -77,34 +78,34 @@ enum RabbitStatus {
 /// Habit 테이블
 model Habit {
   /// PK
-  habitId       BigInt      @id @default(autoincrement()) @map("habit_id") @db.BigInt
+  habitId BigInt @id @default(autoincrement()) @map("habit_id") @db.BigInt
 
-  userId        BigInt      @map("user_id")  @db.BigInt
+  userId BigInt @map("user_id") @db.BigInt
   // @unique로 1:1 보장
-  teamId        BigInt      @map("team_id")  @db.BigInt @unique
+  teamId BigInt @unique @map("team_id") @db.BigInt
 
   /// 내용
-  title         String?     @db.VarChar(255)
-  goalDetail    String?     @map("goal_detail") @db.VarChar(255)
-  goalCount     BigInt?     @map("goal_count")  @db.BigInt
+  title      String? @db.VarChar(255)
+  goalDetail String? @map("goal_detail") @db.VarChar(255)
+  goalCount  BigInt? @map("goal_count") @db.BigInt
 
-  rabbitName    String      @map("rabbit_name")   @db.VarChar(255)
-  rabbitStatus  RabbitStatus @map("rabbit_status") // enum
+  rabbitName   String       @map("rabbit_name") @db.VarChar(255)
+  rabbitStatus RabbitStatus @map("rabbit_status") // enum
 
-  inviteCode    String?     @map("invite_code") @db.VarChar(255)
-  combo         BigInt?     @db.BigInt
+  inviteCode String? @map("invite_code") @db.VarChar(255)
+  combo      BigInt? @db.BigInt
 
-  regDate       DateTime?   @map("reg_date")
-  modDate       DateTime?   @map("mod_date")
+  regDate DateTime? @map("reg_date")
+  modDate DateTime? @map("mod_date")
 
-  isAttendance  Boolean?    @map("is_attendance")
+  isAttendance Boolean? @map("is_attendance")
 
   /// 위치(소수점)
-  targetLat     Decimal?    @map("target_lat") @db.Decimal(9, 6)
-  targetLng     Decimal?    @map("target_lng") @db.Decimal(9, 6)
+  targetLat Decimal? @map("target_lat") @db.Decimal(9, 6)
+  targetLng Decimal? @map("target_lng") @db.Decimal(9, 6)
 
   // 역방향: 실제 fk는 habit이 가짐
-  team          Team        @relation(fields: [teamId], references: [teamId])
+  team Team @relation(fields: [teamId], references: [teamId])
 
   @@index([userId])
   @@map("tbl_habit")
@@ -116,13 +117,13 @@ enum TeamRole {
 }
 
 model TeamMember {
-  teamMemberId  BigInt    @id @default(autoincrement()) @map("team_member_id") @db.BigInt
-  teamId        BigInt
-  userId        BigInt
-  role          TeamRole //'LEADER' | 'MEMBER'
-  regDate       DateTime  @default(now())
+  teamMemberId BigInt   @id @default(autoincrement()) @map("team_member_id") @db.BigInt
+  teamId       BigInt
+  userId       BigInt
+  role         TeamRole //'LEADER' | 'MEMBER'
+  regDate      DateTime @default(now())
 
-  team          Team      @relation(fields: [teamId], references: [teamId])
+  team Team @relation(fields: [teamId], references: [teamId])
 
   @@unique([teamId, userId])
   @@map("tbl_team_member")
