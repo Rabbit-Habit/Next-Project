@@ -49,5 +49,5 @@ export async function middleware(req: NextRequest) {
 
 // 검증할 경로 지정하기
 export const config = {
-    matcher: ["/", "/users/mypage", "/users/mypage/edit"],
+    matcher: ["/", "/users/mypage", "/users/mypage/nickname", "/users/mypage/password", "/users/mypage/profile"],
 }
