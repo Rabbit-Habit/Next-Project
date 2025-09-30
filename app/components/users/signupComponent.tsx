@@ -67,17 +67,17 @@ function SignupComponent() {
     const checkId = async () => {
         const available = await CheckIdAction(formState.id)
         setFormState((prev) => ({ ...prev, isIdChecked: available }))
-    };
+    }
 
     const checkNickname = async () => {
         const available = await CheckNicknameAction(formState.nickname)
         setFormState((prev) => ({ ...prev, isNicknameChecked: available }))
-    };
+    }
 
     const handlePasswordConfirmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value
         setFormState((prev) => ({ ...prev, passwordConfirm: value }))
-    };
+    }
 
     useEffect(() => {
         const handler = setTimeout(() => {

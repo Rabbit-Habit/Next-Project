@@ -1,11 +1,11 @@
 "use server"
 
 import Header from "@/app/components/common/header";
-import MypageComponent from "@/app/components/users/mypageComponent";
-import prisma from "@/lib/prisma";
+import DeleteComponent from "@/app/components/users/deleteComponent";
 import {cookies} from "next/headers";
+import prisma from "@/lib/prisma";
 
-async function MypagePage() {
+async function DeletePage() {
     const cookieStore = await cookies()
     const uid = cookieStore.get("uid")?.value
     const userId = uid ? Number(uid) : undefined
@@ -13,18 +13,18 @@ async function MypagePage() {
     const user = await prisma.user.findUnique({
         where: { userId: userId },
         select: {
-            id: true,
-            nickname: true,
-            imageUrl: true,
+            password: true,
         },
     })
 
     return (
         <div>
-            <Header title="마이페이지" backUrl={"/"}/>
-            <MypageComponent id={user!.id} nickname={user!.nickname} imageUrl={user!.imageUrl}/>
+            <div>
+                <Header title="회원 탈퇴" backUrl={"/users/mypage"}/>
+                <DeleteComponent password={user!.password}/>
+            </div>
         </div>
     )
 }
 
-export default MypagePage
+export default DeletePage

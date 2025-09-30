@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ function ConfirmModal({ open, onConfirm, onCancel, title, description }: Confirm
     return (
         <Dialog open={open} onOpenChange={onCancel}>
             <DialogContent className="sm:max-w-md rounded-2xl shadow-lg bg-white border border-gray-200 animate-fade-in">
-                <DialogHeader className="flex flex-col items-center gap-4">
+                <DialogHeader className="flex flex-col items-center gap-6">
                     {/* 경고 또는 확인 아이콘 */}
                     <div className="text-4xl">⚠️</div>
 
