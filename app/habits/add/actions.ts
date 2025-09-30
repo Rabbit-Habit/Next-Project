@@ -3,12 +3,14 @@
 import { z } from 'zod'
 import prisma from "@/lib/prisma";
 import {revalidatePath} from "next/cache";
+import {cookies} from "next/headers";
 
-// 로그인 id 가져오기 (임시로 111 사용중)
+// 로그인 id 가져오기
 async function getCurrentUserId() {
-    // const session = await auth();
-    // return session?.user.id
-    return 111
+    const cookieStore = await cookies()
+    const uid = cookieStore.get("uid")?.value
+    const userId = uid ? Number(uid) : undefined
+    return userId
 }
 
 // 초대 코드 생성기
