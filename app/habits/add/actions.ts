@@ -39,7 +39,6 @@ const teamJoinSchema = z.object({
 })
 
 // 개인 습관
-// 1:1 제약으로 개인 습관 만들면 자동으로 팀 한개가 만들어지는데 이거 맞지..?
 export async function createPersonalHabit(input: z.infer<typeof personalHabitSchema>) {
     const parsed = personalHabitSchema.safeParse(input)
     if (!parsed.success) {
@@ -132,36 +131,31 @@ export async function createTeamHabit(input: z.infer<typeof teamCreateSchema>) {
 }
 
 // 초대코드로 팀 참여
-export async function joinTeamByInvite(input: z.infer<typeof teamJoinSchema>) {
-    const parsed = teamJoinSchema.safeParse(input)
-    if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message }
+type JoinTeamByInviteInput = { inviteCode: string }
+type ActionResult = { ok: true } | { ok: false; error?: string }
 
-    const userId = await getCurrentUserId()
-    if (!userId) return { ok: false, error: '로그인이 필요합니다.' }
-
+export async function joinTeamByInvite(input: JoinTeamByInviteInput): Promise<ActionResult> {
     try {
-        const res = await prisma.$transaction(async (tx) => {
-            const habit = await tx.habit.findFirst({
-                where: { inviteCode: parsed.data.inviteCode },
-                select: { teamId: true },
-            })
-            if (!habit) return { ok: false as const, error: '유효하지 않은 초대코드입니다.' }
+        const cookieStore = await cookies()
+        const uid = cookieStore.get("uid")?.value
+        const userId = uid ? BigInt(uid) : null
+        if (!userId) return { ok: false, error: "로그인이 필요합니다."}
 
-            const exists = await tx.teamMember.findFirst({
-                where: { teamId: habit.teamId, userId },
-                select: { teamMemberId: true },
-            })
-            if (!exists) {
-                await tx.teamMember.create({
-                    data: { teamId: habit.teamId, userId, role: 'MEMBER' },
-                })
-            }
-            return { ok: true as const, teamId: habit.teamId }
+        const habit = await prisma.habit.findFirst({
+            where: { inviteCode: input.inviteCode },
+            select: { teamId: true, habitId: true },
+        })
+        if (!habit?.teamId) return { ok: false, error:"유효하지 않은 초대코드" }
+
+        await prisma.teamMember.upsert({
+            where: { teamId_userId: { teamId: habit.teamId, userId } },
+            create: { teamId: habit.teamId, userId, role: "MEMBER", regDate: new Date() },
+            update: {},
         })
 
-        revalidatePath('/teams')
-        return res
-    } catch (e: any) {
-        return { ok: false, error: e?.message ?? 'DB 오류가 발생했습니다.' }
+        return { ok: true }
+    } catch (e) {
+        console.error(e)
+        return { ok: false, error: "팀 참여 중 오류 발생"}
     }
 }
