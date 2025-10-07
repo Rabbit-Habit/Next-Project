@@ -13,6 +13,8 @@ type Mode = "personal" | "team_create" | "team_join";
 export default function HabitForm() {
     const [mode, setMode] = useState<Mode>("personal");
     const [pending, startTransition] = useTransition();
+    // 락 걸기(더블 클릭시 2번 추가되는거 방지)
+    const [locked, setLocked] = useState(false);
 
     // 공통(개인 & 팀 생성)
     const [title, setTitle] = useState("");
@@ -39,6 +41,9 @@ export default function HabitForm() {
 
     const onSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (locked || pending) return
+        setLocked(true)
+
         resetAlerts();
         setGeneratedInvite(null);
 
@@ -80,12 +85,14 @@ export default function HabitForm() {
                 }
             } catch (err: any) {
                 setError(err?.message || "알 수 없는 오류가 발생했어요.");
+            } finally {
+                setLocked(false)
             }
         });
     };
 
     const disableSubmit =
-        pending ||
+        pending || locked ||
         (mode === "personal" && (!title.trim() || !rabbitName.trim())) ||
         (mode === "team_create" && (!teamName.trim() || !title.trim() || !rabbitName.trim())) ||
         (mode === "team_join" && !inviteCode.trim());
