@@ -18,7 +18,7 @@ function MypageComponent({ id, nickname, imageUrl }: MypageProps) {
 
     const menuItems = [
         { label: "팀 관리", icon: <Users className="w-5 h-5 text-pink-400" /> },
-        { label: "해빗 관리", icon: <ListChecks className="w-5 h-5 text-pink-400" /> },
+        { label: "해빗 관리", icon: <ListChecks className="w-5 h-5 text-pink-400" />, onClick: () => {router.push("/habits")} },
         { label: "알람 설정", icon: <Bell className="w-5 h-5 text-pink-400" /> },
         { label: "비밀번호 변경", icon: <Lock className="w-5 h-5 text-pink-400" />, onClick: () => {router.push("/users/mypage/password")}},
         { label: "계정 탈퇴", icon: <Trash2 className="w-5 h-5 text-pink-400" />, onClick: () => {router.push("/users/mypage/delete")}},

@@ -10,8 +10,12 @@ function toBigint(id: string) {
     }
 }
 
-export default async function HabitDetailPage({ params }: {params: { habitId: string } }) {
-    const habitIdBig = toBigint(params.habitId);
+export default async function HabitDetailPage(
+    props : { params: Promise<{ habitId: string }> }
+) {
+
+    const { habitId } = await props.params
+    const habitIdBig = toBigint(habitId);
     if (!habitIdBig) return notFound();
 
     const habit = await prisma.habit.findUnique({

@@ -7,12 +7,18 @@ function toBigint(id: string) {
     try { return BigInt(id) } catch { return null }
 }
 
-export default async function HabitEditPage({ params }: { params: { habitId: string } }) {
+export default async function HabitEditPage(
+    props: { params: Promise<{ hId: string }> }
+) {
+
+    const { hId } = await props.params
+
     const cookieStore = await cookies()
     const uid = cookieStore.get("uid")?.value
     const userId = uid ? Number(uid) : undefined
 
-    const habitId = toBigint(params.habitId)
+    const habitId = toBigint(hId)
+
     if (!habitId || !userId) {
         return (
             <div className="p-6">
