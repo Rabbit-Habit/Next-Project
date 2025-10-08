@@ -1,14 +1,15 @@
 "use server"
 
 import prisma from "@/lib/prisma";
-import {cookies} from "next/headers";
 import {revalidatePath} from "next/cache";
+import {getServerSession} from "next-auth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 
 export async function NicknameEditAction(formData: FormData): Promise<EditResult> {
     const nickname = String(formData.get("nickname"))
 
-    const cookieStore = await cookies()
-    const uid = cookieStore.get('uid')?.value
+    const session = await getServerSession(authOptions)
+    const uid = Number(session?.user.uid)
 
     if (!uid) {
         console.log("User authentication failed")
@@ -23,7 +24,7 @@ export async function NicknameEditAction(formData: FormData): Promise<EditResult
         const now = new Date()
 
         const updatedUser = await prisma.user.update({
-            where: { userId: parseInt(uid) },
+            where: { userId: uid },
             data: {
                 nickname: nickname,
                 modDate: now,

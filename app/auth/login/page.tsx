@@ -1,46 +1,52 @@
 "use client";
 
-import React, {useActionState, useEffect, useState} from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import {LoginAction} from "@/app/auth/login/actions";
+import { signIn } from "next-auth/react";
 import FailModal from "@/app/components/modal/failModal";
-import {useLoginStore} from "@/app/store/useLoginStore";
-
-const initState: LoginResult = {
-    uid: -1,
-    error: ""
-}
-
-const loginClientAction = async (
-    state: LoginResult,
-    formData: FormData
-): Promise<LoginResult> => {
-    return LoginAction(formData)
-}
 
 function AuthLoginPage() {
     const router = useRouter()
 
-    const [state, action, isPending] = useActionState(loginClientAction, initState)
-
-    // zustand 전역 상태 관리
-    const {save} = useLoginStore()
-
     // 모달 상태 관리
     const [isModalOpen, setIsModalOpen] = useState(false)
+
+    // 에러 메세지 상태 관리
+    const [errorMsg, setErrorMsg] = useState("")
 
     // 아이디, 비밀번호 상태 관리
     const [id, setId] = useState("")
     const [password, setPassword] = useState("")
 
-    useEffect(() => {
-        if (state.uid >= 0) {
-            save(state.uid)
-            router.push("/users/mypage");
-        } else if (state.error) {
-            setIsModalOpen(true);
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault()
+
+        const res = await signIn("credentials", {
+            redirect: false,
+            id,
+            password,
+        })
+
+        if (res?.error) {
+            setErrorMsg(res.error)
+            setIsModalOpen(true)
+        } else {
+            router.push("/users/mypage")
         }
-    }, [state, router]);
+    }
+
+    const handleKakaoLogin = async (e: React.FormEvent) => {
+        e.preventDefault()
+
+        const res = await signIn("kakao", {
+            callbackUrl: '/users/mypage'
+        })
+
+        if (res?.error) {
+            setErrorMsg(res.error)
+            setIsModalOpen(true)
+        }
+    }
 
     return (
         <>
@@ -55,7 +61,7 @@ function AuthLoginPage() {
                 title="로그인 실패"
                 description={
                     <>
-                        {state.error}<br />
+                        {errorMsg}<br />
                         다시 시도해주세요.
                     </>
                 }
@@ -73,7 +79,7 @@ function AuthLoginPage() {
                 </div>
 
                 {/* 로그인 폼 */}
-                <form action={action} className="flex flex-col gap-6 w-full max-w-md bg-white rounded-xl p-4">
+                <form onSubmit={handleLogin} className="flex flex-col gap-6 w-full max-w-md bg-white rounded-xl p-4">
                     {/* 아이디 */}
                     <div className="flex flex-col">
                         <label
@@ -164,6 +170,7 @@ function AuthLoginPage() {
                 <div className="w-full max-w-md rounded-xl p-4">
                     <button
                         type="button"
+                        onClick={handleKakaoLogin}
                         className="w-full max-w-md bg-[#FEE500] font-semibold rounded-lg flex items-center justify-center gap-2 py-3"
                     >
                         <img
