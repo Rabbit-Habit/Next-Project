@@ -1,6 +1,8 @@
 import prisma from "@/lib/prisma";
 import {cookies} from "next/headers";
 import HabitsList from "@/app/components/habits/habitsList.server";
+import {getServerSession} from "next-auth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 
 // function toOptionalBigInt(v?: string) {
 //     if (!v) return undefined;
@@ -8,9 +10,9 @@ import HabitsList from "@/app/components/habits/habitsList.server";
 // }
 
 export default async function HabitsPage() {
-    const cookieStore = await cookies()
-    const uid = cookieStore.get("uid")?.value
-    const userId = uid ? Number(uid) : null
+    const session = await getServerSession(authOptions)
+    const userId = Number(session?.user.uid)
+
     if (!userId) return <div> 로그인이 필요합니다. </div>
 
     const teamIds = await prisma.teamMember.findMany({

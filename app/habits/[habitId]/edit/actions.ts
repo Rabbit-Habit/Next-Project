@@ -4,6 +4,8 @@ import {cookies} from "next/headers";
 import prisma from "@/lib/prisma";
 import {revalidatePath} from "next/cache";
 import {redirect} from "next/navigation";
+import {getServerSession} from "next-auth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 
 type UpdateInput = {
     habitId: string
@@ -24,9 +26,8 @@ const toBigInt = (v?: string | null) => (v ? BigInt(v) : null)
 
 // 수정(update)
 export async function updateHabitAction(input: UpdateInput) {
-    const cookieStore = await cookies()
-    const uid = cookieStore.get("uid")?.value
-    const userId = toBigInt(uid)
+    const session = await getServerSession(authOptions)
+    const userId = Number(session?.user.uid)
     const habitId = toBigInt(input.habitId)
     if (!userId || !habitId) return { ok: false, error: "권한 또는 파라미터 오류" }
 

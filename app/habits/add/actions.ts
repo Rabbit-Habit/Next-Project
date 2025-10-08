@@ -4,12 +4,15 @@ import { z } from 'zod'
 import prisma from "@/lib/prisma";
 import {revalidatePath} from "next/cache";
 import {cookies} from "next/headers";
+import {getServerSession} from "next-auth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 
 // 로그인 id 가져오기
 async function getCurrentUserId(): Promise<bigint | null> {
-    const cookieStore = await cookies()
-    const uid = cookieStore.get("uid")?.value
-    return uid ? BigInt(uid) : null
+    const session = await getServerSession(authOptions)
+    const userId = Number(session?.user.uid)
+
+    return userId ? BigInt(userId) : null
 }
 
 // 초대 코드 생성기
