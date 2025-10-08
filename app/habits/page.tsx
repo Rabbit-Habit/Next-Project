@@ -1,19 +1,32 @@
 import prisma from "@/lib/prisma";
 import {cookies} from "next/headers";
 import HabitsList from "@/app/components/habits/habitsList.server";
+import {getServerSession} from "next-auth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 
-function toOptionalBigInt(v?: string) {
-    if (!v) return undefined;
-    try { return BigInt(v); } catch { return undefined; }
-}
+// function toOptionalBigInt(v?: string) {
+//     if (!v) return undefined;
+//     try { return BigInt(v); } catch { return undefined; }
+// }
 
 export default async function HabitsPage() {
-    const cookieStore = await cookies()
-    const uid = cookieStore.get("uid")?.value
-    const userId = uid ? Number(uid) : undefined
+    const session = await getServerSession(authOptions)
+    const userId = Number(session?.user.uid)
 
-    const habits = await prisma.habit.findMany({
-        where: userId ? {userId} : undefined, // 로그인 연동 시 필터링
+    if (!userId) return <div> 로그인이 필요합니다. </div>
+
+    const teamIds = await prisma.teamMember.findMany({
+        where: { userId },
+        select: { teamId: true },
+    }).then(rows => rows.map(r => r.teamId))
+
+    const items = await prisma.habit.findMany({
+        where: {
+            OR: [
+                { userId },                  // 내가 만든 개인/팀 습관
+                { teamId: { in: teamIds } }, // 내가 멤버로 속한 팀 습관
+            ],
+        },
         select: {
             habitId: true,
             title: true,
@@ -28,16 +41,16 @@ export default async function HabitsPage() {
     })
 
     // DTO 직렬화 (BigInt/Date 안전)
-    const items = habits.map((h) => ({
-        id: h.habitId.toString(),
-        title: h.title ?? "제목 없는 습관",
-        rabbitName: h.rabbitName,
-        rabbitStatus: h.rabbitStatus as "alive" | "hungry" | "escaped",
-        goalDetail: h.goalDetail ?? null,
-        teamName: h.team?.name ?? null,
-        regDate: h.regDate ? h.regDate.toISOString() : null,
+    const mapped = items.map((i) => ({
+        id: i.habitId.toString(),
+        title: i.title ?? "제목 없는 습관",
+        rabbitName: i.rabbitName,
+        rabbitStatus: i.rabbitStatus as "alive" | "hungry" | "escaped",
+        goalDetail: i.goalDetail ?? null,
+        teamName: i.team?.name ?? null,
+        regDate: i.regDate ? i.regDate.toISOString() : null,
     }));
 
-    return <HabitsList items={items} />
+    return <HabitsList items={mapped} />
 }
 

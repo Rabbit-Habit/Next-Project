@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../app/generated/prisma"
@@ -30,43 +24,74 @@ model User {
   @@map("tbl_user")
 }
 
-// 채팅
 model ChatChannel {
-  channelId Int      @id @default(autoincrement()) @map("channel_id")
-  habitId   Int      @map("habit_id")
-  regDate   DateTime @default(now()) @map("reg_date")
-
-  // 관계
-  messages ChatMessage[]
+  channelId Int           @id @default(autoincrement()) @map("channel_id")
+  habitId   Int           @map("habit_id")
+  regDate   DateTime      @default(now()) @map("reg_date")
+  messages  ChatMessage[]
 
   @@map("tbl_chat_channels")
 }
 
 model ChatMessage {
-  messageId Int      @id @default(autoincrement()) @map("message_id")
-  channelId Int      @map("channel_id")
-  userId    Int      @map("user_id")
+  messageId Int         @id @default(autoincrement()) @map("message_id")
+  channelId Int         @map("channel_id")
+  userId    Int         @map("user_id")
   content   String
-  regDate   DateTime @default(now()) @map("reg_date")
+  regDate   DateTime    @default(now()) @map("reg_date")
+  channel   ChatChannel @relation(fields: [channelId], references: [channelId])
+  user      User        @relation(fields: [userId], references: [userId])
 
-  // 관계
-  channel ChatChannel @relation(fields: [channelId], references: [channelId])
-  user    User        @relation(fields: [userId], references: [userId])
-
-  // 인덱스 추가 (channel_id + reg_date)
-  @@index([channelId, regDate], name: "idx_channel_date")
+  @@index([channelId, regDate], map: "idx_channel_date")
   @@map("tbl_chat_message")
 }
 
 model Team {
-  teamId  BigInt   @id @default(autoincrement()) @map("team_id") @db.BigInt
+  teamId  BigInt       @id @default(autoincrement()) @map("team_id")
   name    String?
-  regDate DateTime @default(now())
-
-  members TeamMember[]
+  regDate DateTime     @default(now())
   habit   Habit?
+  members TeamMember[]
 
   @@map("tbl_team")
+}
+
+/// Habit 테이블
+model Habit {
+  /// PK
+  habitId      BigInt       @id @default(autoincrement()) @map("habit_id")
+  userId       BigInt       @map("user_id")
+  teamId       BigInt       @unique @map("team_id")
+  /// 내용
+  title        String?      @db.VarChar(255)
+  goalDetail   String?      @map("goal_detail") @db.VarChar(255)
+  goalCount    BigInt?      @map("goal_count")
+  rabbitName   String       @map("rabbit_name") @db.VarChar(255)
+  rabbitStatus RabbitStatus @map("rabbit_status")
+  inviteCode   String?      @map("invite_code") @db.VarChar(255)
+  combo        BigInt?
+  regDate      DateTime?    @map("reg_date")
+  modDate      DateTime?    @map("mod_date")
+  isAttendance Boolean?     @map("is_attendance")
+  /// 위치(소수점)
+  targetLat    Decimal?     @map("target_lat") @db.Decimal(9, 6)
+  targetLng    Decimal?     @map("target_lng") @db.Decimal(9, 6)
+  team         Team         @relation(fields: [teamId], references: [teamId])
+
+  @@index([userId])
+  @@map("tbl_habit")
+}
+
+model TeamMember {
+  teamMemberId BigInt   @id @default(autoincrement()) @map("team_member_id")
+  teamId       BigInt
+  userId       BigInt
+  role         TeamRole
+  regDate      DateTime @default(now())
+  team         Team     @relation(fields: [teamId], references: [teamId])
+
+  @@unique([teamId, userId], name: "teamId_userId")
+  @@map("tbl_team_member")
 }
 
 enum RabbitStatus {
@@ -75,56 +100,7 @@ enum RabbitStatus {
   escaped
 }
 
-/// Habit 테이블
-model Habit {
-  /// PK
-  habitId BigInt @id @default(autoincrement()) @map("habit_id") @db.BigInt
-
-  userId BigInt @map("user_id") @db.BigInt
-  // @unique로 1:1 보장
-  teamId BigInt @unique @map("team_id") @db.BigInt
-
-  /// 내용
-  title      String? @db.VarChar(255)
-  goalDetail String? @map("goal_detail") @db.VarChar(255)
-  goalCount  BigInt? @map("goal_count") @db.BigInt
-
-  rabbitName   String       @map("rabbit_name") @db.VarChar(255)
-  rabbitStatus RabbitStatus @map("rabbit_status") // enum
-
-  inviteCode String? @map("invite_code") @db.VarChar(255)
-  combo      BigInt? @db.BigInt
-
-  regDate DateTime? @map("reg_date")
-  modDate DateTime? @map("mod_date")
-
-  isAttendance Boolean? @map("is_attendance")
-
-  /// 위치(소수점)
-  targetLat Decimal? @map("target_lat") @db.Decimal(9, 6)
-  targetLng Decimal? @map("target_lng") @db.Decimal(9, 6)
-
-  // 역방향: 실제 fk는 habit이 가짐
-  team Team @relation(fields: [teamId], references: [teamId])
-
-  @@index([userId])
-  @@map("tbl_habit")
-}
-
 enum TeamRole {
   LEADER
   MEMBER
-}
-
-model TeamMember {
-  teamMemberId BigInt   @id @default(autoincrement()) @map("team_member_id") @db.BigInt
-  teamId       BigInt
-  userId       BigInt
-  role         TeamRole //'LEADER' | 'MEMBER'
-  regDate      DateTime @default(now())
-
-  team Team @relation(fields: [teamId], references: [teamId])
-
-  @@unique([teamId, userId])
-  @@map("tbl_team_member")
 }

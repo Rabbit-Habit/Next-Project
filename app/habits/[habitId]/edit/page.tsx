@@ -2,17 +2,24 @@ import Header from "@/app/components/common/header";
 import prisma from "@/lib/prisma";
 import {cookies} from "next/headers";
 import HabitEditForm from "@/app/components/habits/habitEditForm";
+import {getServerSession} from "next-auth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 
 function toBigint(id: string) {
     try { return BigInt(id) } catch { return null }
 }
 
-export default async function HabitEditPage({ params }: { params: { habitId: string } }) {
-    const cookieStore = await cookies()
-    const uid = cookieStore.get("uid")?.value
-    const userId = uid ? Number(uid) : undefined
+export default async function HabitEditPage(
+    props: { params: Promise<{ hId: string }> }
+) {
 
-    const habitId = toBigint(params.habitId)
+    const { hId } = await props.params
+
+    const session = await getServerSession(authOptions)
+    const userId = Number(session?.user.uid)
+
+    const habitId = toBigint(hId)
+
     if (!habitId || !userId) {
         return (
             <div className="p-6">
