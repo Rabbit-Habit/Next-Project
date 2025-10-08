@@ -1,6 +1,9 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import {cookies} from "next/headers";
+import {getServerSession} from "next-auth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 
 // 메시지 전송 액션
 export async function sendMessageAction(formData: FormData): Promise<{ ok: boolean; error?: string; message?: any }> {
@@ -31,15 +34,55 @@ export async function sendMessageAction(formData: FormData): Promise<{ ok: boole
 // 메시지 삭제 액션
 export async function deleteMessageAction(messageId: number, userId: number){
     try{
-        const deleted = await prisma.chatMessage.deleteMany({
-            where: {
-                messageId,
-                userId, //본인 메시지만 삭제 가능
-            },
+        // 메시지 가져오기 (삭제 제한 확인용)
+        const message = await prisma.chatMessage.findUnique({
+            where: {messageId},
+            select: {userId: true, regDate: true},
         });
-        return { ok: deleted.count > 0 };
+
+        if (!message || message.userId !== userId) {
+            return { ok: false };
+        }
+
+        // 보낸지 1시간 넘었으면 삭제하지 않음
+        const now = new Date();
+        const diff = (now.getTime() - new Date(message.regDate).getTime()) / 1000 / 60;
+        if (diff > 60) return { ok: false };
+
+        // 1시간 이내면 삭제 진행
+        await prisma.chatMessage.delete({ where: { messageId } });
+        return { ok: true };
+
     } catch (err) {
         console.error("❌ deleteMessageAction error", err);
         return { ok: false };
+    }
+}
+
+// 읽음 처리 액션
+export async function updateReadStatusAction(channelId: number) {
+    const session = await getServerSession(authOptions)
+    const uid = Number(session?.user.uid)
+    if (!uid) return { ok: false, message: "로그인 필요" }
+
+    try {
+        await prisma.chatRead.upsert({
+            where: {
+                userId_channelId: {
+                    userId: Number(uid),
+                    channelId: Number(channelId),
+                },
+            },
+            update: { lastReadAt: new Date() },
+            create: {
+                userId: Number(uid),
+                channelId: Number(channelId),
+            },
+        })
+
+        return { ok: true }
+    } catch (e) {
+        console.error("❌ updateReadStatus error", e)
+        return { ok: false, message: "DB update 실패" }
     }
 }
