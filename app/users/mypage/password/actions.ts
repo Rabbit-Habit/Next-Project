@@ -1,17 +1,18 @@
 "use server"
 
-import {cookies} from "next/headers";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcrypt";
+import {getServerSession} from "next-auth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 
 export async function ChangePasswordAction(formData: FormData): Promise<EditResult> {
     const oldPassword = String(formData.get("oldPassword"))
     const newPassword = String(formData.get("newPassword"))
 
-    const cookieStore = await cookies();
-    const uid = cookieStore.get('uid')?.value
+    const session = await getServerSession(authOptions)
+    const userId = session?.user.uid
 
-    if (!uid) {
+    if (!userId) {
         console.log("User authentication failed")
 
         return {
@@ -21,8 +22,6 @@ export async function ChangePasswordAction(formData: FormData): Promise<EditResu
     }
 
     try {
-        const userId = parseInt(uid)
-
         await checkPassword(userId, oldPassword)
 
         const hashedNewPassword = await bcrypt.hash(newPassword, 10)
