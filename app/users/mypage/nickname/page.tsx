@@ -4,11 +4,12 @@ import {cookies} from "next/headers";
 import prisma from "@/lib/prisma";
 import Header from "@/app/components/common/header";
 import NicknameEditComponent from "@/app/components/users/nicknameEditComponent";
+import {getServerSession} from "next-auth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 
 async function NicknamePage() {
-    const cookieStore = await cookies()
-    const uid = cookieStore.get("uid")?.value
-    const userId = uid ? Number(uid) : undefined
+    const session = await getServerSession(authOptions)
+    const userId = Number(session?.user.uid)
 
     const user = await prisma.user.findUnique({
         where: { userId: userId },

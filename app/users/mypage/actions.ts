@@ -1,27 +1,15 @@
 "use server"
 
-import {cookies} from "next/headers";
-import {redirect} from "next/navigation";
 import {createSupabaseClient} from "@/lib/supabase";
 import prisma from "@/lib/prisma";
 import {uploadProfileImage} from "@/app/users/signup/actions";
 import {revalidatePath} from "next/cache";
-
-export async function LogoutAction() {
-    const cookieStore = await cookies()
-
-    // 쿠키 삭제하기
-    cookieStore.delete("uid")
-    cookieStore.delete("accessToken")
-    cookieStore.delete("refreshToken")
-
-    // 로그인 페이지로 이동
-    redirect("/auth/login")
-}
+import {getServerSession} from "next-auth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 
 export async function ChangeProfileImage(formData: FormData): Promise<EditResult> {
-    const cookieStore = await cookies()
-    const uid = cookieStore.get('uid')?.value
+    const session = await getServerSession(authOptions)
+    const uid = Number(session?.user.uid)
 
     if (!uid) {
         console.log("User authentication failed")

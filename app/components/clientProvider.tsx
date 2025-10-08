@@ -1,23 +1,17 @@
 "use client";
 
-import { ReactNode, useEffect } from "react";
-import {useLoginStore} from "@/app/store/useLoginStore";
+import { ReactNode } from "react";
+import {SessionProvider} from "next-auth/react";
 
 interface ClientProviderProps {
     children: ReactNode;
-    uid: number;
+    session: any;
 }
 
-export default function ClientProvider({ children, uid }: ClientProviderProps) {
-    const { save } = useLoginStore()
-
-    useEffect(() => {
-        save(uid)
-    }, [])
-
+export default function ClientProvider({ children, session }: ClientProviderProps) {
     return (
-        <>
+        <SessionProvider session={session}>
             {children}
-        </>
+        </SessionProvider>
     )
 }

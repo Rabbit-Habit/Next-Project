@@ -4,8 +4,8 @@ import {useRouter} from "next/navigation";
 import {Users, ListChecks, Bell, Lock, LogOut, Trash2, ChevronRight} from "lucide-react";
 import React, {useState} from "react";
 import ConfirmModal from "@/app/components/modal/confirmModal";
-import {LogoutAction} from "@/app/users/mypage/actions";
 import ProfileChangeModal from "@/app/components/modal/profileChangeModal";
+import {signOut} from "next-auth/react";
 
 interface MypageProps {
     id: string;
@@ -25,18 +25,25 @@ function MypageComponent({ id, nickname, imageUrl }: MypageProps) {
         { label: "로그아웃", icon: <LogOut className="w-5 h-5 text-pink-400" />, onClick: () => {setIsLogoutModalOpen(true)} },
     ]
 
+    // 프로필 변경 모달 상태 관리
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
+
     // 로그아웃 모달 상태 관리
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
 
-    // 프로필 변경 모달 상태 관리
-    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
+    const handleLogout = async () => {
+        await signOut({
+            redirect: true,
+            callbackUrl: "/auth/login"
+        })
+    }
 
     return (
         <>
             {/* 로그아웃 모달 */}
             <ConfirmModal
                 open={isLogoutModalOpen}
-                onConfirm={LogoutAction}
+                onConfirm={handleLogout}
                 onCancel={() => setIsLogoutModalOpen(false)}
                 title="로그아웃"
                 description="정말로 로그아웃하시겠습니까?"

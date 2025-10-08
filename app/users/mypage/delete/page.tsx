@@ -4,10 +4,12 @@ import Header from "@/app/components/common/header";
 import DeleteComponent from "@/app/components/users/deleteComponent";
 import {cookies} from "next/headers";
 import prisma from "@/lib/prisma";
+import {getServerSession} from "next-auth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 
 async function DeletePage() {
-    const cookieStore = await cookies()
-    const uid = cookieStore.get("uid")?.value
+    const session = await getServerSession(authOptions)
+    const uid = Number(session?.user.uid)
     const userId = uid ? Number(uid) : undefined
 
     const user = await prisma.user.findUnique({

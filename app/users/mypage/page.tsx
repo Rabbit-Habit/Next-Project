@@ -3,12 +3,12 @@
 import Header from "@/app/components/common/header";
 import MypageComponent from "@/app/components/users/mypageComponent";
 import prisma from "@/lib/prisma";
-import {cookies} from "next/headers";
+import {getServerSession} from "next-auth";
+import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 
 async function MypagePage() {
-    const cookieStore = await cookies()
-    const uid = cookieStore.get("uid")?.value
-    const userId = uid ? Number(uid) : undefined
+    const session = await getServerSession(authOptions)
+    const userId = Number(session?.user.uid)
 
     const user = await prisma.user.findUnique({
         where: { userId: userId },
