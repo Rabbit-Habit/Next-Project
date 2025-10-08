@@ -1,3 +1,9 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
 generator client {
   provider = "prisma-client-js"
   output   = "../app/generated/prisma"
@@ -19,31 +25,53 @@ model User {
   isDeleted   Boolean       @default(false) @map("is_deleted")
   regDate     DateTime      @default(now()) @map("reg_date")
   modDate     DateTime      @updatedAt @map("mod_date")
-  ChatMessage ChatMessage[]
+  chatMessage ChatMessage[]
+  chatRead    ChatRead[]
 
   @@map("tbl_user")
 }
 
+// 채팅
 model ChatChannel {
-  channelId Int           @id @default(autoincrement()) @map("channel_id")
-  habitId   Int           @map("habit_id")
-  regDate   DateTime      @default(now()) @map("reg_date")
-  messages  ChatMessage[]
+  channelId Int      @id @default(autoincrement()) @map("channel_id")
+  habitId   BigInt   @map("habit_id")
+  regDate   DateTime @default(now()) @map("reg_date")
+
+  // 관계
+  messages ChatMessage[]
+  habit    Habit         @relation(fields: [habitId], references: [habitId])
+  chatRead ChatRead[]
 
   @@map("tbl_chat_channels")
 }
 
 model ChatMessage {
-  messageId Int         @id @default(autoincrement()) @map("message_id")
-  channelId Int         @map("channel_id")
-  userId    Int         @map("user_id")
+  messageId Int      @id @default(autoincrement()) @map("message_id")
+  channelId Int      @map("channel_id")
+  userId    Int      @map("user_id")
   content   String
-  regDate   DateTime    @default(now()) @map("reg_date")
-  channel   ChatChannel @relation(fields: [channelId], references: [channelId])
-  user      User        @relation(fields: [userId], references: [userId])
+  regDate   DateTime @default(now()) @map("reg_date")
 
-  @@index([channelId, regDate], map: "idx_channel_date")
+  // 관계
+  channel ChatChannel @relation(fields: [channelId], references: [channelId])
+  user    User        @relation(fields: [userId], references: [userId])
+
+  // 인덱스 추가 (channel_id + reg_date)
+  @@index([channelId, regDate], name: "idx_channel_date")
   @@map("tbl_chat_message")
+}
+
+model ChatRead {
+  readId     Int      @id @default(autoincrement())
+  userId     Int
+  channelId  Int
+  lastReadAt DateTime @default(now())
+
+  user    User        @relation(fields: [userId], references: [userId])
+  channel ChatChannel @relation(fields: [channelId], references: [channelId])
+
+  @@unique([userId, channelId])
+  @@map("tbl_chat_read")
 }
 
 model Team {
@@ -77,6 +105,8 @@ model Habit {
   targetLat    Decimal?     @map("target_lat") @db.Decimal(9, 6)
   targetLng    Decimal?     @map("target_lng") @db.Decimal(9, 6)
   team         Team         @relation(fields: [teamId], references: [teamId])
+
+  chatChannels ChatChannel[]
 
   @@index([userId])
   @@map("tbl_habit")
