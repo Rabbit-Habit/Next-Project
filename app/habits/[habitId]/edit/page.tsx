@@ -1,6 +1,5 @@
 import Header from "@/app/components/common/header";
 import prisma from "@/lib/prisma";
-import {cookies} from "next/headers";
 import HabitEditForm from "@/app/components/habits/habitEditForm";
 import {getServerSession} from "next-auth";
 import {authOptions} from "@/app/api/auth/[...nextauth]/route";
@@ -10,17 +9,17 @@ function toBigint(id: string) {
 }
 
 export default async function HabitEditPage(
-    props: { params: Promise<{ hId: string }> }
+    props: { params: Promise<{ habitId: string }> }
 ) {
 
-    const { hId } = await props.params
+    const { habitId } = await props.params
 
     const session = await getServerSession(authOptions)
     const userId = Number(session?.user.uid)
 
-    const habitId = toBigint(hId)
+    const hid = toBigint(habitId)
 
-    if (!habitId || !userId) {
+    if (!hid || !userId) {
         return (
             <div className="p-6">
                 <Header title="습관 수정" />

@@ -106,7 +106,7 @@ model Habit {
   targetLng    Decimal?     @map("target_lng") @db.Decimal(9, 6)
   team         Team         @relation(fields: [teamId], references: [teamId])
 
-  chatChannels ChatChannel[]
+  chatChannel ChatChannel[]
 
   @@index([userId])
   @@map("tbl_habit")
