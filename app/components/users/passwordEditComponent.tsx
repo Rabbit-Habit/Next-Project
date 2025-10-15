@@ -4,6 +4,11 @@ import React, {useActionState, useEffect, useState} from "react";
 import {ChangePasswordAction} from "@/app/users/mypage/password/actions";
 import FailModal from "@/app/components/modal/failModal";
 import SuccessModal from "@/app/components/modal/successModal";
+import {useRouter} from "next/navigation";
+
+interface PasswordEditProps {
+    isSocial: boolean;
+}
 
 const initState: EditResult = {
     uid: -1,
@@ -31,14 +36,19 @@ const passwordEditClientAction = async (
     return ChangePasswordAction(formData)
 }
 
-function PasswordEditComponent() {
+function PasswordEditComponent({ isSocial }: PasswordEditProps) {
     const [state, action, isPending] = useActionState(passwordEditClientAction, initState)
+
+    const router = useRouter()
 
     // 실패 모달 상태 관리
     const [isFailModalOpen, setIsFailModalOpen] = useState(false)
 
     // 성공 모달 상태 관리
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
+
+    // 소셜 로그인 모달 상태 관리
+    const [isSocialModalOpen, setIsSocialModalOpen] = useState(false)
 
     // 폼 데이터 상태 관리
     const [formState, setFormState] = useState(initFormState);
@@ -88,8 +98,30 @@ function PasswordEditComponent() {
         }
     }, [state])
 
+    useEffect(() => {
+        if (isSocial) {
+            setIsSocialModalOpen(true)
+        }
+    }, [isSocial])
+
     return (
         <>
+            {/* 소셜 로그인 비밀번호 변경 불가능 모달 */}
+            <FailModal
+                open={isSocialModalOpen}
+                onClose={() => {
+                    setIsSocialModalOpen(false)
+                    router.back()
+                }}
+                title="비밀번호 변경 불가능"
+                description={
+                    <>
+                        소셜 로그인 사용자의 경우<br />
+                        비밀번호를 변경할 수 없습니다.
+                    </>
+                }
+            />
+
             {/* 비밀번호 변경 실패 모달 */}
             <FailModal
                 open={isFailModalOpen}

@@ -2,7 +2,7 @@ import {notFound} from "next/navigation";
 import prisma from "@/lib/prisma";
 import HabitDetail from "@/app/habits/[habitId]/HabitDetail.server";
 
-function toBigint(id: string) {
+export function toBigint(id: string) {
     try {
         return BigInt(id);
     } catch {
