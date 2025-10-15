@@ -1,7 +1,7 @@
 "use client";
 
 import {useEffect, useLayoutEffect, useRef, useState} from "react";
-import {deleteMessageAction, sendMessageAction} from "@/app/chat/[channelId]/actions";
+import {deleteMessageAction, loadOlderMessagesAction, sendMessageAction} from "@/app/chat/[channelId]/actions";
 import {useRouter} from "next/navigation";
 import {IoArrowBackOutline} from "react-icons/io5";
 import {useSession} from "next-auth/react";
@@ -22,21 +22,24 @@ export default function ChatClientComponent({
 
     const router = useRouter();
 
-    // 메시지 목록 상태
-    const [messages, setMessages] = useState(initialMessages);
-
     // 로그인 uid 가져오기
-    const { data: session, status } = useSession();
+    const { data: session } = useSession();
     const uid = session?.user?.uid ? Number(session.user.uid) : undefined;
-
-    if (status === "loading") return <div>로딩 중...</div>;
     if (!uid) return <div>로그인이 필요합니다.</div>;
 
-    // 입력창 ref (메시지 전송 후 입력값 비우기용)
-    const inputRef = useRef<HTMLInputElement>(null);
+    // 상태 관리
+    const [messages, setMessages] = useState(initialMessages); // 메시지 목록 상태
+    const [chatReadsState, setChatReads] = useState(chatReads); // 읽음 상태
+    const [cursor, setCursor] = useState<number | null>(null); // 이전 메시지 로드용 커서
+    const [isLoadingMore, setIsLoadingMore] = useState(false); // 위쪽 로딩 스피너 표시
+    const [isPrepending, setIsPrepending] = useState(false); // 메시지 prepend 중 여부
 
-    // WebSocket 객체 저장용 ref
-    const wsRef = useRef<WebSocket | null>(null);
+    // Ref 관리
+    const inputRef = useRef<HTMLInputElement>(null); // 입력창 비우기용
+    const chatBoxRef = useRef<HTMLDivElement | null>(null); // 채팅 컨테이너
+    const bottomRef = useRef<HTMLDivElement | null>(null); // 맨 아래 스크롤용
+    const isUserScrollingUpRef = useRef(false); // 자동 스크롤 제어 플래그
+    const wsRef = useRef<WebSocket | null>(null); // WebSocket 인스턴스 저장
 
     // 1. WebSocket 연결 관리
     useEffect(() => {
@@ -48,7 +51,14 @@ export default function ChatClientComponent({
         wsRef.current = ws;
 
         ws.onopen = () => {
-            console.log("✅ WebSocket 연결됨");
+            // 연결 직후 내 읽음 상태 전송
+            ws.send(
+                JSON.stringify({
+                    type: "read_update",
+                    channelId: Number(channelId),
+                    userId: uid,
+                })
+            );
         };
 
         // 서버에서 broadcast된 메시지 수신
@@ -56,6 +66,33 @@ export default function ChatClientComponent({
             try {
                 const newMessage = JSON.parse(event.data);
 
+                // 읽음 상태 업데이트 이벤트
+                if (newMessage.type === "read_update") {
+                    setChatReads((prev) => {
+                        const existing = prev.find((r) => r.userId === newMessage.userId);
+                        if (existing) {
+                            // 이미 존재 → lastReadAt 갱신
+                            return prev.map((r) =>
+                                r.userId === newMessage.userId
+                                    ? { ...r, lastReadAt: newMessage.lastReadAt }
+                                    : r
+                            );
+                        } else {
+                            // 없으면 새로 추가
+                            return [
+                                ...prev,
+                                { userId: newMessage.userId, lastReadAt: newMessage.lastReadAt },
+                            ];
+                        }
+                    });
+
+
+                    // 강제 리렌더 트리거 (읽음 카운트 갱신)
+                    setMessages((prev) => [...prev]);
+                    return;
+                }
+
+                if (newMessage.channelId !== Number(channelId)) return;
                 // 메시지 추가 이벤트
                 if (newMessage.channelId === Number(channelId)) {
                     setMessages((prev) =>
@@ -128,20 +165,102 @@ export default function ChatClientComponent({
         }
     };
 
-    // 아래로 자동 스크롤
-    const bottomRef = useRef<HTMLDivElement | null>(null);
-    const chatBoxRef = useRef<HTMLDivElement | null>(null);
+    // 읽음 상태 자동 업데이트
+    useEffect(() => {
+        if (!messages.length) return;
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+            wsRef.current.send(
+                JSON.stringify({
+                    type: "read_update",
+                    channelId: Number(channelId),
+                    userId: uid,
+                })
+            );
+        }
+    }, [messages.length]);
 
-    // 채팅방 처음 렌더될 때 → 스크롤 조작 없이 맨 아래 상태로 시작
+    // 초기 진입 시 맨 아래로 이동
     useLayoutEffect(() => {
         const el = chatBoxRef.current;
         if (el) el.scrollTop = el.scrollHeight;
     }, []);
 
+    // 새 메시지 수신 시 자동 스크롤
     useEffect(() => {
-        // messages가 바뀔 때마다 맨 아래로 스크롤
+        // 위쪽 메시지 불러오는 중이면 스크롤 유지
+        if (isPrepending) return;
+
+        // 사용자가 위로 스크롤 중이면 자동 스크롤 안 함
+        if (isUserScrollingUpRef.current) return;
+
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
+
+    // 초기 커서 설정 (가장 오래된 메시지 ID)
+    useEffect(() => {
+        if (initialMessages.length > 0) {
+            setCursor(initialMessages[0].messageId);
+        }
+    }, [initialMessages]);
+
+    // 이전 메시지 무한 스크롤 로드
+    async function loadOlderMessages() {
+        const box = chatBoxRef.current;
+        if (!box || isLoadingMore || !cursor) return;
+        if (box.scrollTop >= 100) return; // 맨 위 근처에서만 실행
+
+        setIsLoadingMore(true);
+        setIsPrepending(true);
+
+        const prevScrollTop = box.scrollTop;
+        const prevScrollHeight = box.scrollHeight;
+        const res = await loadOlderMessagesAction(Number(channelId), cursor);
+
+        if (res.messages.length > 0) {
+            // messages 상태 업데이트 전 플래그 유지
+            await new Promise((resolve) => requestAnimationFrame(resolve));
+
+            setMessages((prev) => [...res.messages, ...prev]);
+            setCursor(res.nextCursor);
+
+            // 스크롤 위치 보정
+            requestAnimationFrame(() => {
+                const newScrollHeight = box.scrollHeight;
+                const heightDiff = newScrollHeight - prevScrollHeight;
+                box.scrollTop = prevScrollTop + heightDiff;
+            });
+
+            // 자동 스크롤 잠깐 막기 (messages useEffect 타이밍 차단)
+            setTimeout(() => setIsPrepending(false), 50);
+        } else {
+            setIsPrepending(false);
+        }
+
+        setIsLoadingMore(false);
+    }
+
+    // 스크롤 이벤트 관리
+    useEffect(() => {
+        const box = chatBoxRef.current;
+        if (!box) return;
+
+        const handleScroll = () => {
+            const isAtBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 10; // 거의 아래
+            const isAtTop = box.scrollTop <= 50; // 거의 위
+
+            // 아래쪽 여부 추적
+            isUserScrollingUpRef.current = !isAtBottom;
+
+            // 맨 위 근처면 과거 메시지 로드
+            if (isAtTop && !isLoadingMore && cursor) {
+                loadOlderMessages();
+            }
+        };
+
+        box.addEventListener("scroll", handleScroll);
+        return () => box.removeEventListener("scroll", handleScroll);
+    }, [cursor, isLoadingMore]);
+
 
     return (
         <div className="flex flex-col h-screen bg-gray-50">
@@ -172,6 +291,13 @@ export default function ChatClientComponent({
                 className="flex-1 overflow-y-auto p-4 flex flex-col gap-4"
                 style={{ scrollBehavior: "auto" }}
             >
+                {/* 위쪽 로딩 스피너 */}
+                {isLoadingMore && (
+                    <div className="flex justify-center items-center py-2 sticky top-0 z-10 bg-gradient-to-b from-gray-50/95 to-transparent">
+                        <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                    </div>
+                )}
+
                 {messages.map((m, idx) => {
                     const isMine = m.userId === uid;
                     const time = new Date(m.regDate).toLocaleTimeString("ko-KR", {
@@ -179,14 +305,21 @@ export default function ChatClientComponent({
                         minute: "2-digit",
                     });
 
-                    // 내가 보낸 메시지일 때, 안 읽은 사람 수 계산
+                    // 안읽은 사람 수 계산
                     let unreadCount = 0;
-                    if (isMine && chatReads) {
-                        unreadCount = participants.filter((p: any) => {
-                            const read = chatReads.find((r: any) => r.userId === p.userId);
-                            return !read || new Date(read.lastReadAt) < new Date(m.regDate);
-                        }).length;
-                    }
+
+                    unreadCount = participants.filter((p: any) => {
+                        const participantId = Number(p.userId);
+                        const senderId = Number(m.userId);
+
+                        if (participantId === senderId) return false; // 보낸 사람은 제외
+                        const read = chatReadsState.find(
+                            (r: any) => Number(r.userId) === participantId
+                        );
+                        if (!read || new Date(read.lastReadAt) < new Date(m.regDate)) return true;
+
+                        return false;
+                    }).length;
 
                     // 날짜 구분
                     const msgDate = new Date(m.regDate).toLocaleDateString("ko-KR", {
@@ -286,6 +419,12 @@ export default function ChatClientComponent({
                                             return null; // 1시간 지났으면 버튼 안 보이게
                                         })()}
                                     </div>
+
+                                    {unreadCount > 0 && (
+                                        <span className="ml-1 text-[11px] text-blue-500 font-medium">
+                                            {unreadCount}
+                                        </span>
+                                    )}
                                     <span
                                         className={`text-xs text-gray-500 mt-1 ${
                                             isMine ? "text-right" : "text-left"

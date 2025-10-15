@@ -89,7 +89,16 @@ export async function createPersonalHabit(input: z.infer<typeof personalHabitSch
                     regDate: now,
                 },
                 select: { habitId: true, teamId: true },
-            })
+            });
+
+            // 채팅방 생성
+            await tx.chatChannel.create({
+                data: {
+                    habitId: habit.habitId,
+                    regDate: now,
+                },
+            });
+
             return habit
         })
 
@@ -156,8 +165,18 @@ export async function createTeamHabit(input: z.infer<typeof teamCreateSchema>) {
                 },
                 select: { habitId: true, inviteCode: true },
             })
+
+            // 채팅방 생성
+            await tx.chatChannel.create({
+                data: {
+                    habitId: habit.habitId,
+                    regDate: now,
+                },
+            });
+
             return { teamId: team.teamId, habitId: habit.habitId, inviteCode: habit.inviteCode }
         })
+
 
         revalidatePath('/teams'); revalidatePath('/habits')
         return { ok: true, deduped: false as const, ...res }
