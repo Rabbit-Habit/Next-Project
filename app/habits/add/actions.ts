@@ -36,9 +36,6 @@ const teamCreateSchema = z.object({
     ...habitCore,
     generateInvite: z.boolean().optional(),
 })
-// const teamJoinSchema = z.object({
-//     inviteCode: z.string().min(4, '초대코드를 확인해주세요.').max(255),
-// })
 
 // 개인 습관
 export async function createPersonalHabit(input: z.infer<typeof personalHabitSchema>) {
@@ -176,9 +173,7 @@ type ActionResult = { ok: true } | { ok: false; error?: string }
 
 export async function joinTeamByInvite(input: JoinTeamByInviteInput): Promise<ActionResult> {
     try {
-        const cookieStore = await cookies()
-        const uid = cookieStore.get("uid")?.value
-        const userId = uid ? BigInt(uid) : null
+        const userId = await getCurrentUserId()
         if (!userId) return { ok: false, error: "로그인이 필요합니다."}
 
         const habit = await prisma.habit.findFirst({
