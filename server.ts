@@ -54,6 +54,43 @@ async function main() {
                     return;
                 }
 
+                // ✅ 읽음 이벤트 (클라이언트 → 서버)
+                if (msg.type === "read_update") {
+                    const { channelId, userId } = msg;
+
+                    // 현재 채널의 가장 최근 메시지 시간 가져오기
+                    const latestMessage = await prisma.chatMessage.findFirst({
+                        where: { channelId },
+                        orderBy: { regDate: "desc" },
+                        select: { regDate: true },
+                    });
+
+                    // 최근 메시지가 없으면 지금 시각으로 대체
+                    const lastReadAt = latestMessage?.regDate ?? new Date();
+
+                    // DB 업데이트
+                    await prisma.chatRead.upsert({
+                        where: { userId_channelId: { userId, channelId } },
+                        update: { lastReadAt },
+                        create: { userId, channelId, lastReadAt },
+                    });
+
+                    // broadcast
+                    wss.clients.forEach((client: any) => {
+                        if (client.readyState === 1) {
+                            client.send(
+                                JSON.stringify({
+                                    type: "read_update",
+                                    channelId,
+                                    userId,
+                                    lastReadAt: lastReadAt.toISOString(),
+                                })
+                            );
+                        }
+                    });
+                    return;
+                }
+
                 // ✅ 메시지 추가 이벤트
                 const { channelId, userId, content } = msg;
 

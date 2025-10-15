@@ -34,7 +34,7 @@ model User {
 // 채팅
 model ChatChannel {
   channelId Int      @id @default(autoincrement()) @map("channel_id")
-  habitId   BigInt   @map("habit_id")
+  habitId   BigInt   @unique @map("habit_id")
   regDate   DateTime @default(now()) @map("reg_date")
 
   // 관계
@@ -62,10 +62,10 @@ model ChatMessage {
 }
 
 model ChatRead {
-  readId     Int      @id @default(autoincrement())
-  userId     Int
-  channelId  Int
-  lastReadAt DateTime @default(now())
+  readId     Int      @id @default(autoincrement()) @map("read_id")
+  userId     Int      @map("user_id")
+  channelId  Int      @map("channel_id")
+  lastReadAt DateTime @default(now()) @map("last_read_at")
 
   user    User        @relation(fields: [userId], references: [userId])
   channel ChatChannel @relation(fields: [channelId], references: [channelId])
@@ -106,7 +106,7 @@ model Habit {
   targetLng    Decimal?     @map("target_lng") @db.Decimal(9, 6)
   team         Team         @relation(fields: [teamId], references: [teamId])
 
-  chatChannels ChatChannel[]
+  chatChannel ChatChannel?
 
   @@index([userId])
   @@map("tbl_habit")

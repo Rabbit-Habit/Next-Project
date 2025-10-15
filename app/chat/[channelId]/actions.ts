@@ -1,7 +1,6 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import {cookies} from "next/headers";
 import {getServerSession} from "next-auth";
 import {authOptions} from "@/app/api/auth/[...nextauth]/route";
 
@@ -80,9 +79,32 @@ export async function updateReadStatusAction(channelId: number) {
             },
         })
 
+
         return { ok: true }
     } catch (e) {
         console.error("❌ updateReadStatus error", e)
         return { ok: false, message: "DB update 실패" }
     }
+}
+
+// 과거 메시지 불러오기(무한 스크롤용)
+export async function loadOlderMessagesAction(channelId: number, cursor?: number) {
+    const take = 20; // 한 번에 가져올 개수
+
+    const messages = await prisma.chatMessage.findMany({
+        where: { channelId },
+        orderBy: { regDate: "desc" },
+        take,
+        skip: cursor ? 1 : 0,
+        cursor: cursor ? { messageId: cursor } : undefined,
+        include: { user: true },
+    });
+
+    // 다음 커서 설정
+    const nextCursor = messages.length === take ? messages[messages.length - 1].messageId : null;
+
+    return {
+        messages: messages.reverse(),
+        nextCursor,
+    };
 }
