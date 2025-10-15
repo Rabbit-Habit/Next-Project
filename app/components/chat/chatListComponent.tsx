@@ -30,7 +30,7 @@ export default function ChatListComponent({ habits }: { habits: any }) {
                 if (data.type === "read_update") {
                     setHabitList((prev) =>
                         prev.map((habit: any) => {
-                            const channel = habit.chatChannel?.[0];
+                            const channel = habit.chatChannel;
                             if (!channel || channel.channelId !== data.channelId) return habit;
 
                             const updatedRead = channel.chatRead.map((r: any) =>
@@ -41,12 +41,10 @@ export default function ChatListComponent({ habits }: { habits: any }) {
 
                             return {
                                 ...habit,
-                                chatChannel: [
-                                    {
-                                        ...channel,
-                                        chatRead: updatedRead,
-                                    },
-                                ],
+                                chatChannel: {
+                                    ...channel,
+                                    chatRead: updatedRead,
+                                },
                             };
                         })
                     );
@@ -57,17 +55,15 @@ export default function ChatListComponent({ habits }: { habits: any }) {
                 if (data.channelId && !data.type) {
                     setHabitList((prev) =>
                         prev.map((habit: any) => {
-                            const channel = habit.chatChannel?.[0];
+                            const channel = habit.chatChannel;
                             if (!channel || channel.channelId !== data.channelId) return habit;
 
                             return {
                                 ...habit,
-                                chatChannel: [
-                                    {
-                                        ...channel,
-                                        messages: [data], // 최신 메시지 덮어쓰기
-                                    },
-                                ],
+                                chatChannel: {
+                                    ...channel,
+                                    messages: [data], // 최신 메시지 덮어쓰기
+                                },
                             };
                         })
                     );
@@ -77,7 +73,7 @@ export default function ChatListComponent({ habits }: { habits: any }) {
                 if (data.type === "delete") {
                     setHabitList((prev) =>
                         prev.map((habit: any) => {
-                            const channel = habit.chatChannel?.[0];
+                            const channel = habit.chatChannel;
                             if (!channel || channel.channelId !== data.channelId) return habit;
 
                             const updatedMsgs = channel.messages.filter(
@@ -86,12 +82,10 @@ export default function ChatListComponent({ habits }: { habits: any }) {
 
                             return {
                                 ...habit,
-                                chatChannel: [
-                                    {
-                                        ...channel,
-                                        messages: updatedMsgs,
-                                    },
-                                ],
+                                chatChannel: {
+                                    ...channel,
+                                    chatRead: updatedMsgs,
+                                },
                             };
                         })
                     );
@@ -111,8 +105,8 @@ export default function ChatListComponent({ habits }: { habits: any }) {
     // 최신 메시지 기준 정렬
     const sorted = useMemo(() => {
         return [...habitList].sort((a, b) => {
-            const aTime = new Date(a.chatChannel?.[0]?.messages?.[0]?.regDate || 0).getTime();
-            const bTime = new Date(b.chatChannel?.[0]?.messages?.[0]?.regDate || 0).getTime();
+            const aTime = new Date(a.chatChannel?.messages?.[0]?.regDate || 0).getTime();
+            const bTime = new Date(b.chatChannel?.messages?.[0]?.regDate || 0).getTime();
             return bTime - aTime;
         });
     }, [habitList]);
@@ -128,7 +122,7 @@ export default function ChatListComponent({ habits }: { habits: any }) {
                     <p className="text-gray-500">참여 중인 채팅방이 없습니다.</p>
                 ) : (
                     sorted.map((habit) => {
-                        const channel = habit.chatChannel?.[0];
+                        const channel = habit.chatChannel;
                         const lastMsg = channel?.messages?.[0];
                         const lastTime = lastMsg
                             ? new Date(lastMsg.regDate).toLocaleTimeString("ko-KR", {

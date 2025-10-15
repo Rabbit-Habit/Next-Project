@@ -13,7 +13,11 @@ export default async function ChatListPage() {
     const habits = await prisma.habit.findMany({
         where: {
             team: {
-                members:{ some: {} },
+                members: {
+                    some: {
+                        userId: BigInt(uid ?? 0),
+                    },
+                },
             },
         },
         include: {
