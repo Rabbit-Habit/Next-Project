@@ -31,7 +31,7 @@ function AuthLoginPage() {
             setErrorMsg(res.error)
             setIsModalOpen(true)
         } else {
-            router.push("/users/mypage")
+            router.push("/main")
         }
     }
 
@@ -39,7 +39,7 @@ function AuthLoginPage() {
         e.preventDefault()
 
         const res = await signIn("kakao", {
-            callbackUrl: '/users/mypage'
+            callbackUrl: '/main'
         })
 
         if (res?.error) {

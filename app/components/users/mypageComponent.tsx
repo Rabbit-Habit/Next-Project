@@ -57,7 +57,6 @@ function MypageComponent({ id, nickname, imageUrl }: MypageProps) {
             />
 
             <div className="min-h-screen flex flex-col items-center p-6">
-                {/* max-w-md를 제거하고, p-4 (패딩)를 추가하여 여백을 조절했습니다. */}
                 <div className="w-full max-w-md space-y-4">
                     {/* 프로필 영역 */}
                     <div className="flex items-center space-x-4">

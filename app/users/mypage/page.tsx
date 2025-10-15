@@ -21,7 +21,7 @@ async function MypagePage() {
 
     return (
         <div>
-            <Header title="마이페이지" backUrl={"/"}/>
+            <Header title="마이페이지"/>
             <MypageComponent id={user!.id} nickname={user!.nickname} imageUrl={user!.imageUrl}/>
         </div>
     )
