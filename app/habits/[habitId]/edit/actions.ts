@@ -20,10 +20,6 @@ type UpdateInput = {
 
 const toBigInt = (v?: string | null) => (v ? BigInt(v) : null)
 
-// function toBigint(id: string) {
-//     try { return BigInt(id) } catch { return null }
-// }
-
 // 수정(update)
 export async function updateHabitAction(input: UpdateInput) {
     const session = await getServerSession(authOptions)
@@ -57,9 +53,8 @@ export async function updateHabitAction(input: UpdateInput) {
 
 // 삭제
 export async function deleteHabitAction(habitIdStr: string) {
-    const cookieStore = await cookies()
-    const uid = cookieStore.get("uid")?.value
-    const userId = toBigInt(uid)
+    const session = await getServerSession(authOptions)
+    const userId = Number(session?.user.uid)
     const habitId = toBigInt(habitIdStr)
     if (!userId || !habitId) return { ok: false, error: "권한 또는 파라미터 오류" }
 

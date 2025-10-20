@@ -1,6 +1,7 @@
 import InviteCodeCardServer from "@/app/components/habits/inviteCodeCard.server";
 import Header from "@/app/components/common/header";
 import Link from "next/link";
+import {submitCheckAction} from "@/app/habits/[habitId]/actions";
 
 export default function HabitDetail({
     habit,
@@ -91,6 +92,14 @@ export default function HabitDetail({
                 >
                     수정하기
                 </Link>
+                <form action={async () => {
+                    "use server";
+                    await submitCheckAction(habit.id);
+                }}>
+                    <button className="px-3 py-2 rounded-xl border bg-amber-50 text-amber-700 hover:bg-amber-100">
+                        {(memberCount > 1 || !!habit.inviteCode) ? "팀 기여 1회" : "오늘 체크"}
+                    </button>
+                </form>
             </div>
         </div>
     );
