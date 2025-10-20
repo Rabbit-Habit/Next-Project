@@ -88,34 +88,86 @@ model Team {
 model Habit {
   /// PK
   habitId      BigInt       @id @default(autoincrement()) @map("habit_id")
-  userId       BigInt       @map("user_id")
-  teamId       BigInt       @unique @map("team_id")
+  userId       Int          @map("user_id")
+  teamId       BigInt?      @unique @map("team_id")
   /// 내용
   title        String?      @db.VarChar(255)
   goalDetail   String?      @map("goal_detail") @db.VarChar(255)
   goalCount    BigInt?      @map("goal_count")
   rabbitName   String       @map("rabbit_name") @db.VarChar(255)
-  rabbitStatus RabbitStatus @map("rabbit_status")
+  rabbitStatus RabbitStatus @map("rabbit_status") @default(alive)
   inviteCode   String?      @map("invite_code") @db.VarChar(255)
-  combo        BigInt?
-  regDate      DateTime?    @map("reg_date")
-  modDate      DateTime?    @map("mod_date")
+  combo        BigInt      @default(0)
+  regDate      DateTime    @map("reg_date") @default(now())
+  modDate      DateTime    @map("mod_date") @updatedAt
   isAttendance Boolean?     @map("is_attendance")
   /// 위치(소수점)
   targetLat    Decimal?     @map("target_lat") @db.Decimal(9, 6)
   targetLng    Decimal?     @map("target_lng") @db.Decimal(9, 6)
-  team         Team         @relation(fields: [teamId], references: [teamId])
 
-  chatChannel ChatChannel?
+  team         Team?        @relation(fields: [teamId], references: [teamId])
+
+  chatChannel  ChatChannel?
+
+  histories    HabitHistory[]
+  teamLogs     TeamHabitHistory[]
 
   @@index([userId])
   @@map("tbl_habit")
 }
 
+// 습관 개인 기록
+model HabitHistory {
+  historyId   BigInt   @id @default(autoincrement()) @map("history_id")
+  habitId     BigInt   @map("habit_id")
+  userId      Int   @map("user_id")
+
+  // 체크한 '날짜(KST 기준으로 계산한 하루)'를 Date 타입으로 저장
+  checkDate   DateTime @db.Date @map("check_date")
+
+  // 성공 여부
+  isCompleted Boolean  @default(true) @map("is_completed")
+
+  regDate     DateTime @default(now()) @map("reg_date")
+
+  habit       Habit    @relation(fields: [habitId], references: [habitId])
+
+  // 같은 날에 같은 유저가 같은 습관을 2번 체크하지 못하게
+  @@unique([habitId, userId, checkDate], name: "uq_habit_user_day")
+  @@index([habitId, checkDate])
+  @@map("tbl_habit_history")
+}
+
+// 팀 히스토리: 팀 목표 누적용
+model TeamHabitHistory {
+  teamHistoryId BigInt   @id @default(autoincrement()) @map("team_history_id")
+  habitId       BigInt   @map("habit_id")
+  teamId        BigInt   @map("team_id")
+
+  // 팀 단위로 오늘 누계 집계할 때 쓸 '날짜'
+  checkDate     DateTime @db.Date @map("check_date")
+
+  // 팀 목표 채우기 위한 "한 번의 기여"를 의미 (true로만 관리)
+  isCompleted   Boolean  @default(true) @map("is_completed")
+
+  // 팀원별 1일 1회 제한
+  userId        Int      @map("user_id")
+
+  regDate       DateTime @default(now()) @map("reg_date")
+
+  habit         Habit    @relation(fields: [habitId], references: [habitId])
+
+  @@index([habitId, teamId, checkDate])
+  // 팀원 1일 1회만 허용
+  @@unique([habitId, teamId, userId, checkDate], name: "uq_team_habit_user_day")
+
+  @@map("tbl_team_habit_history")
+}
+
 model TeamMember {
   teamMemberId BigInt   @id @default(autoincrement()) @map("team_member_id")
   teamId       BigInt
-  userId       BigInt
+  userId       Int
   role         TeamRole
   regDate      DateTime @default(now())
   team         Team     @relation(fields: [teamId], references: [teamId])
