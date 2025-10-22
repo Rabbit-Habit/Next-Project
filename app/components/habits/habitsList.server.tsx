@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Header from "@/app/components/common/header";
+import WeeklyStampComponent from "@/app/components/stat/WeeklyStampComponent";
 
 type Item = {
     id: string;
@@ -49,10 +50,17 @@ export default function HabitsList({ items }: { items: Item[] }) {
                                         {h.goalDetail && (
                                             <p className="text-sm text-gray-600 mt-2">{h.goalDetail}</p>
                                         )}
+
                                     </div>
                                     <span className={`px-2 py-1 rounded-full text-xs font-medium border ${statusClass(h.rabbitStatus)}`}>
 {h.rabbitStatus}
 </span>
+
+                                </div>
+
+                                {/* 이번 주 달성 스탬프 */}
+                                <div className="mt-3">
+                                    <WeeklyStampComponent habitId={h.id} />
                                 </div>
                             </Link>
                         </li>

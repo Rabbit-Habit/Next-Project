@@ -2,6 +2,8 @@ import InviteCodeCardServer from "@/app/components/habits/inviteCodeCard.server"
 import Header from "@/app/components/common/header";
 import Link from "next/link";
 import {submitCheckAction} from "@/app/habits/[habitId]/actions";
+import { Suspense } from "react";
+import MonthlyHeatmapComponent from "@/app/components/stat/MonthlyHeatmapComponent";
 import HabitCheckButton from "@/app/components/habits/habitCheckButton";
 
 export default function HabitDetail({
@@ -134,6 +136,14 @@ export default function HabitDetail({
                     action={checkAction}
                 />
             </div>
+
+            {/*통계*/}
+            <section className="mt-8">
+                <h2 className="font-semibold mb-2">월 통계</h2>
+                <Suspense fallback={<div>통계 로딩 중...</div>}>
+                    <MonthlyHeatmapComponent habitId={habit.id} />
+                </Suspense>
+            </section>
         </div>
     );
 }
