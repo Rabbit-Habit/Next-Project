@@ -2,6 +2,7 @@ import InviteCodeCardServer from "@/app/components/habits/inviteCodeCard.server"
 import Header from "@/app/components/common/header";
 import Link from "next/link";
 import {submitCheckAction} from "@/app/habits/[habitId]/actions";
+import HabitCheckButton from "@/app/components/habits/habitCheckButton";
 
 export default function HabitDetail({
     habit,
@@ -34,22 +35,47 @@ export default function HabitDetail({
 
     const fmt = (iso: string | null) => (iso ? new Date(iso).toLocaleString() : "—");
 
+    async function checkAction(formData: FormData) {
+        "use server";
+        const hid = String(formData.get("habitId") ?? "");
+        if (!hid) return;
+        await submitCheckAction(hid);
+    }
+
     return (
         <div className="max-w-3xl mx-auto px-4 py-8 space-y-8">
-            <Header title={habit.title}/>
-            <header className="flex items-start justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold">{habit.title}</h1>
-                    <p className="text-sm text-gray-500 mt-1">
-                        Habit ID: <span className="font-mono">{habit.id}</span> · Team: {habit.teamName ?? "—"}
-                    </p>
+            <Header title={habit.title} />
+
+            <header className="flex flex-col gap-3 border-b pb-4">
+                {/* 첫 줄: 제목 + Team */}
+                <div className="flex items-start justify-between gap-4">
+                    <div>
+                        <h1 className="text-2xl font-bold">{habit.title}</h1>
+                        <p className="text-sm text-gray-500 mt-1">
+                            Habit ID: <span className="font-mono">{habit.id}</span> · Team:{" "}
+                            {habit.teamName ?? "—"}
+                        </p>
+                    </div>
+
+                    {/* 🐰 토끼 상태 배지 */}
+                    <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium border ${statusClass}`}
+                    >
+            {habit.rabbitStatus}
+          </span>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium border ${statusClass}`}>
-                  {habit.rabbitStatus}
-                </span>
+
+                {/* ✅ 오늘 체크 버튼 — 토끼 상태 바로 아래로 이동 */}
+                <div className="flex justify-end">
+                    <HabitCheckButton
+                        habitId={habit.id}
+                        action={checkAction}
+                    />
+                </div>
             </header>
 
             <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 왼쪽: 정보 */}
                 <div className="space-y-4">
                     <div className="p-4 border rounded-2xl">
                         <h2 className="font-semibold mb-2">기본 정보</h2>
@@ -65,41 +91,48 @@ export default function HabitDetail({
                     </div>
                 </div>
 
+                {/* 오른쪽: 구분 + 버튼 + 초대 코드 */}
                 <div className="space-y-4">
                     <div className="p-4 border rounded-2xl">
-                        <h2 className="font-semibold mb-2">구분</h2>
-                        <p className="text-sm">
-                            {isTeamHabit ? (
-                                <>팀 습관 <span className="text-gray-500">(팀 인원 {memberCount}명)</span></>
-                            ) : (
-                                <>개인 습관</>
-                            )}
-                        </p>
+                        <div className="flex items-center justify-between gap-3">
+                            <div>
+                                <h2 className="font-semibold mb-1">구분</h2>
+                                <p className="text-sm">
+                                    {isTeamHabit ? (
+                                        <>팀 습관 <span className="text-gray-500">(팀 인원 {memberCount}명)</span></>
+                                    ) : (
+                                        <>개인 습관</>
+                                    )}
+                                </p>
+                            </div>
+
+                            {/* ✅ 여기로 버튼 이동 + 모달 확인 */}
+                            <HabitCheckButton
+                                habitId={habit.id}
+                                action={checkAction}
+                            />
+                        </div>
                     </div>
 
                     {isTeamHabit && (
-                        <InviteCodeCardServer
-                            habitId={habit.id}
-                            initialInviteCode={habit.inviteCode}
-                        />
+                        <InviteCodeCardServer habitId={habit.id} initialInviteCode={habit.inviteCode} />
                     )}
                 </div>
             </section>
-            <div className="mt-2">
+
+            {/* 하단: 편집/기타 액션 */}
+            <div className="mt-2 flex items-center gap-2">
                 <Link
                     href={`/habits/${habit.id.toString()}/edit`}
                     className="px-3 py-2 rounded-xl border hover:bg-gray-50"
                 >
                     수정하기
                 </Link>
-                <form action={async () => {
-                    "use server";
-                    await submitCheckAction(habit.id);
-                }}>
-                    <button className="px-3 py-2 rounded-xl border bg-amber-50 text-amber-700 hover:bg-amber-100">
-                        {(memberCount > 1 || !!habit.inviteCode) ? "팀 기여 1회" : "오늘 체크"}
-                    </button>
-                </form>
+
+                <HabitCheckButton
+                    habitId={habit.id}
+                    action={checkAction}
+                />
             </div>
         </div>
     );
