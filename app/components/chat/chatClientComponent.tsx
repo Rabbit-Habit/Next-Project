@@ -264,7 +264,9 @@ export default function ChatClientComponent({
 
     return (
         <div className="flex flex-col h-screen bg-gray-50">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white"
+                 style={{ height: "56px" }}
+            >
                 {/* 왼쪽: 뒤로가기 + 타이틀 */}
                 <div className="flex items-center gap-3">
                     <button

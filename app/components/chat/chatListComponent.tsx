@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import {useEffect, useMemo, useRef, useState} from "react";
-import Header from "@/app/components/common/header";
 import {useSession} from "next-auth/react";
 
 export default function ChatListComponent({ habits }: { habits: any }) {
@@ -113,9 +112,6 @@ export default function ChatListComponent({ habits }: { habits: any }) {
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
-            {/* 상단 헤더 */}
-            <Header title="내 채팅방"/>
-
             {/* 채팅방 목록 */}
             <div className="flex-1 p-4 flex flex-col gap-3 overflow-y-auto">
                 {sorted.length === 0 ? (

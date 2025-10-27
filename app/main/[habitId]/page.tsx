@@ -31,8 +31,13 @@ async function MainPage(
         return notFound()
     }
 
+    const chatChannel = await prisma.chatChannel.findUnique({
+        where: { habitId: habitIdBig },
+        select: { channelId: true },
+    })
+
     return (
-        <MainComponent habit={habit} />
+        <MainComponent habit={{...habit, channelId: chatChannel? chatChannel.channelId : null}}/>
     )
 }
 

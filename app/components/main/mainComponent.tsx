@@ -3,6 +3,7 @@
 import * as PIXI from 'pixi.js';
 import {useCallback, useEffect, useRef, useState} from "react";
 import RabbitModal from "@/app/components/modal/rabbitModal";
+import {useRouter} from "next/navigation";
 
 type MainProps = {
     habit: {
@@ -12,6 +13,7 @@ type MainProps = {
         rabbitStatus: string;
         combo: bigint | null;
         isAttendance: boolean | null;
+        channelId: number | null;
     }
 }
 
@@ -26,11 +28,13 @@ const BUNNY_TOTAL_FRAMES = 23;
 const BUNNY_ANIMATION_SPEED = 0.05;
 
 const IDLE_START1 = 0;
-const IDLE_END1 = 8;
-const IDLE_START2 = 16;
+const IDLE_END1 = 2;
+const IDLE_START2 = 17;
 const IDLE_END2 = 23;
 const WALK_START = 8;
-const WALK_END = 12;
+const WALK_END = 13;
+const HUNGRY_START = 2;
+const HUNGRY_END = 8;
 
 const NAME_TEXT_STYLE = new PIXI.TextStyle({
     fontSize: 9 * PIXEL_SCALE,
@@ -122,6 +126,8 @@ const drawSignpost = (app: PIXI.Application, rabbitName: string | null, scale: n
 };
 
 function MainComponent({ habit }: MainProps) {
+    const router = useRouter()
+
     const canvasRef = useRef<HTMLDivElement | null>(null)
     const appRef = useRef<PIXI.Application | null>(null)
     const handleResizeRef = useRef<(() => void) | null>(null)
@@ -145,6 +151,7 @@ function MainComponent({ habit }: MainProps) {
         let signpostGraphics: PIXI.Graphics | null = null
         let rabbitNameText: PIXI.Text | null = null
 
+        let escapedHoleGraphics: PIXI.Graphics | null = null
         let bunnySprite: PIXI.AnimatedSprite | null = null
         let bunnyDirection = 1
         const bunnySpeed = PIXEL_SCALE
@@ -155,6 +162,9 @@ function MainComponent({ habit }: MainProps) {
         let isMoving = false
         let idleTimer = 0
         const idleDelayMS = 2000
+
+        const isHungry = habit.rabbitStatus === 'hungry'
+        const isEscaped = habit.rabbitStatus === 'escaped'
 
         const initializePixi = async () => {
             if (!canvasRef.current || appRef.current) return
@@ -222,19 +232,37 @@ function MainComponent({ habit }: MainProps) {
 
                 const idleFrames1 = frames.slice(IDLE_START1, IDLE_END1)
                 const idleFrames2 = frames.slice(IDLE_START2, IDLE_END2)
-                const idleFrames = [...idleFrames1, ...idleFrames2]
+                const idleFrames = [...idleFrames1, ...idleFrames2, idleFrames2[5], idleFrames2[5]]
                 const walkFrames = frames.slice(WALK_START, WALK_END)
+                const hungryFramesBase = frames.slice(HUNGRY_START, HUNGRY_END)
+                const hungryFrames = [...hungryFramesBase, hungryFramesBase[5]]
 
-                bunnySprite = new AnimatedSprite(idleFrames)
+                if (isEscaped) {
+                    escapedHoleGraphics = new Graphics()
+                    const holeSize = 40 * PIXEL_SCALE
 
-                bunnySprite.scale.set(PIXEL_SCALE)
-                bunnySprite.anchor.set(0.5, 1)
-                bunnySprite.animationSpeed = BUNNY_ANIMATION_SPEED
-                bunnySprite.play()
+                    escapedHoleGraphics
+                        .ellipse(0, 0, holeSize * 0.8, holeSize * 0.4)
+                        .fill(0x333333)
 
-                bunnySprite.eventMode = 'static'
-                bunnySprite.cursor = 'pointer'
-                bunnySprite.on('pointertap', handleOpenModal)
+                    // 굴을 클릭 가능하게 설정하고 모달 연결
+                    escapedHoleGraphics.eventMode = 'static'
+                    escapedHoleGraphics.cursor = 'pointer'
+                    escapedHoleGraphics.on('pointertap', handleOpenModal)
+
+                } else {
+                    const initialFrames = isHungry ? hungryFrames : idleFrames
+                    bunnySprite = new AnimatedSprite(initialFrames)
+
+                    bunnySprite.scale.set(PIXEL_SCALE)
+                    bunnySprite.anchor.set(0.5, 1)
+                    bunnySprite.animationSpeed = BUNNY_ANIMATION_SPEED
+                    bunnySprite.play()
+
+                    bunnySprite.eventMode = 'static'
+                    bunnySprite.cursor = 'pointer'
+                    bunnySprite.on('pointertap', handleOpenModal)
+                }
 
                 app.stage.addChild(
                     skyGraphics,          // 0. 하늘
@@ -244,71 +272,89 @@ function MainComponent({ habit }: MainProps) {
                     fenceGraphics,        // 4. 울타리
                     signpostGraphics,     // 5. 팻말 Graphics
                     rabbitNameText,       // 7. 팻말 Text (팻말 Graphics 위에 오도록)
-                    bunnySprite           // 6. 토끼 (팻말보다 위에 오도록 순서 조정)
                 )
 
-                app.canvas.addEventListener('pointerdown', (e) => {
-                    if (bunnySprite) {
-                        const canvasRect = app.canvas.getBoundingClientRect()
+                if (isEscaped && escapedHoleGraphics) {
+                    app.stage.addChild(escapedHoleGraphics) // 6. 토끼 (팻말보다 위에 오도록 순서 조정)
+                } else if (bunnySprite) {
+                    app.stage.addChild(bunnySprite)         // 7. 토끼굴 (도망간 토끼)
+                }
 
-                        targetX = (e.clientX - canvasRect.left) * (app.screen.width / canvasRect.width)
-                        targetY = (e.clientY - canvasRect.top) * (app.screen.height / canvasRect.height)
+                if (!isHungry && !isEscaped) {
+                    app.canvas.addEventListener('pointerdown', (e) => {
+                        if (bunnySprite) {
+                            const canvasRect = app.canvas.getBoundingClientRect()
 
-                        isMoving = true
-                        idleTimer = 0
-                    }
-                })
+                            targetX = (e.clientX - canvasRect.left) * (app.screen.width / canvasRect.width)
+                            targetY = (e.clientY - canvasRect.top) * (app.screen.height / canvasRect.height)
+
+                            isMoving = true
+                            idleTimer = 0
+                        }
+                    })
+                }
 
                 app.ticker.add((ticker) => {
+                    if (isEscaped) {
+                        return
+                    }
+
                     if (!bunnySprite) {
                         return
                     }
 
                     const delta = ticker.deltaMS / (1000 / 60)
 
-                    if (isMoving && targetX !== null && targetY !== null) {
-                        const dx = targetX - bunnySprite.x
-                        const dy = targetY - bunnySprite.y
-
-                        const distance = Math.sqrt(dx * dx + dy * dy)
-
-                        if (distance < bunnySpeed) {
-                            bunnySprite.x = targetX
-                            bunnySprite.y = targetY
-                            isMoving = false
-                            targetX = null
-                            targetY = null
-                        } else {
-                            const ratio = (bunnySpeed * delta) / distance
-                            const moveX = dx * ratio
-                            const moveY = dy * ratio
-
-                            bunnyDirection = dx > 0 ? 1 : -1
-
-                            if (bunnyDirection === 1) {
-                                bunnySprite.scale.x = -PIXEL_SCALE
-                            } else {
-                                bunnySprite.scale.x = +PIXEL_SCALE
-                            }
-
-                            bunnySprite.x += moveX
-                            bunnySprite.y += moveY
-
-                            if (bunnySprite.textures !== walkFrames) {
-                                bunnySprite.textures = walkFrames
-                                bunnySprite.play()
-                            }
-                            idleTimer = 0
+                    if (isHungry) {
+                        if (bunnySprite.textures !== hungryFrames) {
+                            bunnySprite.textures = hungryFrames
+                            bunnySprite.play()
                         }
-                    }
+                    } else {
+                        if (isMoving && targetX !== null && targetY !== null) {
+                            const dx = targetX - bunnySprite.x
+                            const dy = targetY - bunnySprite.y
 
-                    if (!isMoving) {
-                        idleTimer += ticker.deltaMS
+                            const distance = Math.sqrt(dx * dx + dy * dy)
 
-                        if (idleTimer >= idleDelayMS) {
-                            if (bunnySprite.textures !== idleFrames) {
-                                bunnySprite.textures = idleFrames
-                                bunnySprite.play()
+                            if (distance < bunnySpeed) {
+                                bunnySprite.x = targetX
+                                bunnySprite.y = targetY
+                                isMoving = false
+                                targetX = null
+                                targetY = null
+                            } else {
+                                const ratio = (bunnySpeed * delta) / distance
+                                const moveX = dx * ratio
+                                const moveY = dy * ratio
+
+                                bunnyDirection = dx > 0 ? 1 : -1
+
+                                if (bunnyDirection === 1) {
+                                    bunnySprite.scale.x = -PIXEL_SCALE
+                                } else {
+                                    bunnySprite.scale.x = +PIXEL_SCALE
+                                }
+
+                                bunnySprite.x += moveX
+                                bunnySprite.y += moveY
+
+                                if (bunnySprite.textures !== walkFrames) {
+                                    bunnySprite.textures = walkFrames
+                                    bunnySprite.play()
+                                }
+                                idleTimer = 0
+                            }
+                        }
+
+                        if (!isMoving) {
+                            idleTimer += ticker.deltaMS
+
+                            if (idleTimer >= idleDelayMS) {
+                                if (bunnySprite.textures !== idleFrames) {
+                                    bunnySprite.textures = idleFrames
+                                    bunnySprite.play()
+                                }
                             }
                         }
                     }
@@ -316,7 +362,7 @@ function MainComponent({ habit }: MainProps) {
 
                 const handleResize = () => {
                     if (appRef.current && skyGraphics && cloud1Graphics && cloud2Graphics && grassFieldGraphics
-                            && fenceGraphics && bunnySprite && signpostGraphics && rabbitNameText) {
+                        && fenceGraphics && (bunnySprite || escapedHoleGraphics) && signpostGraphics && rabbitNameText) {
                         const currentApp = appRef.current
                         currentApp.resize()
 
@@ -341,8 +387,16 @@ function MainComponent({ habit }: MainProps) {
                         rabbitNameText.x = signpost.Text.x
                         rabbitNameText.y = signpost.Text.y
 
-                        bunnySprite.x = currentApp.screen.width / 2
-                        bunnySprite.y = currentApp.screen.height / 2 + 30 * PIXEL_SCALE
+                        const centerX = currentApp.screen.width / 2
+                        const centerY = currentApp.screen.height / 2 + 80 * PIXEL_SCALE
+
+                        if (isEscaped && escapedHoleGraphics) {
+                            escapedHoleGraphics.x = centerX
+                            escapedHoleGraphics.y = centerY
+                        } else if (bunnySprite) {
+                            bunnySprite.x = centerX
+                            bunnySprite.y = centerY
+                        }
 
                         app.stage.removeChildren()
                         app.stage.addChild(
@@ -353,8 +407,12 @@ function MainComponent({ habit }: MainProps) {
                             fenceGraphics,
                             signpostGraphics,
                             rabbitNameText,
-                            bunnySprite
                         )
+                        if (isEscaped && escapedHoleGraphics) {
+                            app.stage.addChild(escapedHoleGraphics)
+                        } else if (bunnySprite) {
+                            app.stage.addChild(bunnySprite)
+                        }
                     }
                 }
 
@@ -398,7 +456,7 @@ function MainComponent({ habit }: MainProps) {
                     height: 'calc(100vh - 56px)',
                 }}
             >
-            {/* pixi 캔버스 */}
+                {/* pixi 캔버스 */}
                 <div
                     ref={canvasRef}
                     className="w-full h-full"
@@ -422,6 +480,11 @@ function MainComponent({ habit }: MainProps) {
                     <div className="flex justify-center w-1/2">
                         <button
                             className="bg-red-50 text-red-600 font-semibold py-2.5 px-8 sm:px-12 rounded-2xl border border-red-200 text-base sm:text-lg"
+                            onClick={() => {
+                                if (habit.channelId) {
+                                    router.push(`/chat/${habit.channelId}`)
+                                }
+                            }}
                         >
                             채팅하기
                         </button>
@@ -431,6 +494,7 @@ function MainComponent({ habit }: MainProps) {
                     <div className="flex justify-center w-1/2">
                         <button
                             className="bg-amber-50 text-amber-600 font-semibold py-2.5 px-8 sm:px-12 rounded-2xl border border-amber-200 text-base sm:text-lg"
+                            onClick={() => router.push(`/habits/${habit.habitId}`)}
                         >
                             상세보기
                         </button>
