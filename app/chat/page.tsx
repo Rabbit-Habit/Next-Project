@@ -15,7 +15,7 @@ export default async function ChatListPage() {
             team: {
                 members: {
                     some: {
-                        userId: BigInt(uid ?? 0),
+                        userId: Number(uid ?? 0),
                     },
                 },
             },
@@ -36,7 +36,7 @@ export default async function ChatListPage() {
     });
 
     // 2명 이상 팀만 필터링
-    const filteredHabits = habits.filter((h) => h.team.members.length > 1);
+    const filteredHabits = habits.filter((h) => h.team!.members.length > 1);
 
     return (
         <ChatListComponent habits={filteredHabits} />
