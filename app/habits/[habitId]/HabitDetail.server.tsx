@@ -3,8 +3,11 @@ import Header from "@/app/components/common/header";
 import Link from "next/link";
 import {submitCheckAction} from "@/app/habits/[habitId]/actions";
 import { Suspense } from "react";
-import MonthlyHeatmapComponent from "@/app/components/stat/MonthlyHeatmapComponent";
+import HeatmapComponent from "@/app/components/stat/HeatmapComponent";
 import HabitCheckButton from "@/app/components/habits/habitCheckButton";
+import TeamProgressbarComponent from "@/app/components/stat/TeamProgressbarComponent";
+import MonthlySectionComponent from "@/app/components/stat/MonthlySectionComponent";
+import AccumulatedStatComponent from "@/app/components/stat/AccumulatedStatComponent";
 
 export default function HabitDetail({
     habit,
@@ -137,13 +140,23 @@ export default function HabitDetail({
                 />
             </div>
 
+            <div className="border-t border-gray-200" />
+
             {/*통계*/}
             <section className="mt-8">
-                <h2 className="font-semibold mb-2">월 통계</h2>
+                <h2 className="font-semibold mb-2">월간 통계</h2>
                 <Suspense fallback={<div>통계 로딩 중...</div>}>
-                    <MonthlyHeatmapComponent habitId={habit.id} />
+                    <MonthlySectionComponent habitId={habit.id} />
                 </Suspense>
             </section>
+
+            <section className="mt-10">
+                <h2 className="font-semibold mb-2">연간 통계</h2>
+                <Suspense fallback={<div>통계 로딩 중...</div>}>
+                    <AccumulatedStatComponent habitId={habit.id} />
+                </Suspense>
+            </section>
+
         </div>
     );
 }
