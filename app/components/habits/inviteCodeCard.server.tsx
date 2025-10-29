@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import {revalidatePath} from "next/cache";
-import InviteCodeCard from "@/app/components/habits/inveteCodeCard";
+import InviteCodeCard from "@/app/components/habits/inviteCodeCard";
 
 export default function InviteCodeCardServer({
                                                  habitId,

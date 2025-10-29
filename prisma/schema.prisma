@@ -110,7 +110,7 @@ model Habit {
   chatChannel ChatChannel?
 
   histories        HabitHistory[]
-  teamLogs         TeamHabitHistory[]
+  teamLogs         HabitTeamHistory[]
 
   @@index([userId])
   @@map("tbl_habit")
@@ -138,30 +138,47 @@ model HabitHistory {
   @@map("tbl_habit_history")
 }
 
-// 팀 히스토리: 팀 목표 누적용
-model TeamHabitHistory {
-  teamHistoryId BigInt @id @default(autoincrement()) @map("team_history_id")
-  habitId       BigInt @map("habit_id")
-  teamId        BigInt @map("team_id")
+// 습관 팀별 기록
+model HabitTeamHistory {
+  HistoryTeamId BigInt   @id @default(autoincrement()) @map("history_team_id")
+  habitId       BigInt   @map("habit_id")
+  teamId        BigInt   @map("team_id")
+  checkDate     DateTime @map("check_date") @db.Date
+  isCompleted   Boolean  @default(true) @map("is_completed")
+  // userIds       Json?    @map("user_ids") // ["1","2","3"]
+  regDate       DateTime @default(now()) @map("reg_date")
+  habit         Habit    @relation(fields: [habitId], references: [habitId])
 
-  // 팀 단위로 오늘 누계 집계할 때 쓸 '날짜'
-  checkDate DateTime @map("check_date") @db.Date
-
-  // 팀 목표 채우기 위한 "한 번의 기여"를 의미 (true로만 관리)
-  isCompleted Boolean @default(true) @map("is_completed")
-
-  // 팀원별 1일 1회 제한
-  userId Int @map("user_id")
-
-  regDate DateTime @default(now()) @map("reg_date")
-
-  habit Habit @relation(fields: [habitId], references: [habitId])
-
-  // 팀원 1일 1회만 허용
-  @@unique([habitId, teamId, userId, checkDate], name: "uq_team_habit_user_day")
+  // 팀 하루 1행만 존재
+  @@unique([habitId, teamId, checkDate], name: "uq_team_habit_day")
   @@index([habitId, teamId, checkDate])
-  @@map("tbl_team_habit_history")
+  @@map("tbl_habit_team_history")
 }
+
+// 팀 히스토리: 팀 목표 누적용
+// model TeamHabitHistory {
+//   teamHistoryId BigInt @id @default(autoincrement()) @map("team_history_id")
+//   habitId       BigInt @map("habit_id")
+//   teamId        BigInt @map("team_id")
+//
+//   // 팀 단위로 오늘 누계 집계할 때 쓸 '날짜'
+//   checkDate DateTime @map("check_date") @db.Date
+//
+//   // 팀 목표 채우기 위한 "한 번의 기여"를 의미 (true로만 관리)
+//   isCompleted Boolean @default(true) @map("is_completed")
+//
+//   // 팀원별 1일 1회 제한
+//   userId Int @map("user_id")
+//
+//   regDate DateTime @default(now()) @map("reg_date")
+//
+//   habit Habit @relation(fields: [habitId], references: [habitId])
+//
+//   // 팀원 1일 1회만 허용
+//   @@unique([habitId, teamId, userId, checkDate], name: "uq_team_habit_user_day")
+//   @@index([habitId, teamId, checkDate])
+//   @@map("tbl_team_habit_history")
+// }
 
 model TeamMember {
   teamMemberId BigInt   @id @default(autoincrement()) @map("team_member_id")
