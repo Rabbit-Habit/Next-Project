@@ -29,7 +29,7 @@ export default async function HabitEditPage(
     }
 
     const habit = await prisma.habit.findFirst({
-        where: { habitId, userId },
+        where: { habitId: hid, userId },
         select: {
             habitId: true,
             title: true,
