@@ -111,7 +111,6 @@ model Habit {
 
   histories        HabitHistory[]
   teamLogs         TeamHabitHistory[]
-  HabitTeamHistory HabitTeamHistory[]
 
   @@index([userId])
   @@map("tbl_habit")
@@ -162,23 +161,6 @@ model TeamHabitHistory {
   @@unique([habitId, teamId, userId, checkDate], name: "uq_team_habit_user_day")
   @@index([habitId, teamId, checkDate])
   @@map("tbl_team_habit_history")
-}
-
-// 습관 팀별 기록
-model HabitTeamHistory {
-  HistoryTeamId BigInt   @id @default(autoincrement()) @map("history_team_id")
-  habitId       BigInt   @map("habit_id")
-  teamId        BigInt   @map("team_id")
-  checkDate     DateTime @map("check_date") @db.Date
-  isCompleted   Boolean  @default(true) @map("is_completed")
-  userIds       Json?    @map("user_ids") // ["1","2","3"]
-  regDate       DateTime @default(now()) @map("reg_date")
-  habit         Habit    @relation(fields: [habitId], references: [habitId])
-
-  // 팀 하루 1행만 존재
-  @@unique([habitId, teamId, checkDate], name: "uq_team_habit_day")
-  @@index([habitId, teamId, checkDate])
-  @@map("tbl_habit_team_history")
 }
 
 model TeamMember {
