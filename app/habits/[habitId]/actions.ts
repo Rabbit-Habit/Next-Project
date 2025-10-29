@@ -54,7 +54,7 @@ async function didSucceedOnDate(habitId: bigint, teamId: bigint | null, goalCoun
 
     // 팀 성공: 팀 기여 수 >= goal
     if (teamId && goalCount && goalCount > BigInt(0)) {
-        const cnt = await prisma.teamHabitHistory.count({
+        const cnt = await prisma.habitTeamHistory.count({
             where: { habitId, teamId, checkDate, isCompleted: true },
         });
         if (BigInt(cnt) >= goalCount) return true;
@@ -88,7 +88,7 @@ async function bumpComboAlive(habitId: bigint) {
 }
 
 // 탈출하는 토끼
-// hungry 상태가 HUNGRY_TO_ESCAPED_DAYS 이상이면 escqped
+// hungry 상태가 HUNGRY_TO_ESCAPED_DAYS 이상이면 escaped
 // 중간에 하루라도 성공이면 hungry 유지
 async function setHungryOrEscapedIfStreak(habitId: bigint) {
     const habit = await prisma.habit.findUnique({
@@ -173,14 +173,14 @@ export async function checkTeamHabit(habitIdStr: string) {
     });
 
     // 내 팀 기여(팀원 1일 1회)
-    await prisma.teamHabitHistory.upsert({
-        where: { uq_team_habit_user_day: { habitId, teamId, userId, checkDate: today } },
+    await prisma.habitTeamHistory.upsert({
+        where: { uq_team_habit_day: { habitId, teamId, checkDate: today } },
         update: {},
-        create: { habitId, teamId, userId, checkDate: today, isCompleted: true },
+        create: { habitId, teamId, checkDate: today, isCompleted: true },
     });
 
     // 오늘 팀 누계
-    const cnt = await prisma.teamHabitHistory.count({
+    const cnt = await prisma.habitTeamHistory.count({
         where: { habitId, teamId, checkDate: today, isCompleted: true },
     });
 
@@ -220,7 +220,7 @@ export async function finalizeTodayIfMissed(habitIdStr: string) {
     // 팀 성공 (당일 기여 수 >= goal)
     let tCompleted = false;
     if (habit.teamId && (habit.goalCount ?? BigInt(0)) > BigInt(0)) {
-        const c = await prisma.teamHabitHistory.count({
+        const c = await prisma.habitTeamHistory.count({
             where: { habitId, teamId: habit.teamId, checkDate: today, isCompleted: true },
         });
         tCompleted = BigInt(c) >= (habit.goalCount ?? BigInt(0));
