@@ -96,18 +96,28 @@ export async function getTeamMonthlyHeatmap(habitId: string, year?: number, mont
     const { start, end } = getMonthRange(y, m)
 
     // habitTeamHistory 기준으로 월간 팀 기록 조회
-    const records = await prisma.habitTeamHistory.findMany({
+    const teamRecords = await prisma.habitTeamHistory.findMany({
         where: { habitId: hId, checkDate: { gte: start, lt: end } },
-        select: { checkDate: true, isCompleted: true, userIds: true },
+        select: { checkDate: true, isCompleted: true },
         orderBy: { checkDate: "asc" },
     })
 
-    // 날짜별 데이터 매핑 (참여자 수 + 완료 여부)
-    const map = new Map<string, { count: number; isCompleted: boolean }>()
-    for (const r of records) {
-        const key = toLocalDate(r.checkDate)
-        const count = Array.isArray(r.userIds) ? r.userIds.length : 0
-        map.set(key, { count, isCompleted: r.isCompleted })
+    // 개인 기록 중에서 성공한 사람들 가져오기
+    const histories = await prisma.habitHistory.findMany({
+        where: {
+            habitId: hId,
+            isCompleted: true,
+            checkDate: { gte: start, lt: end },
+        },
+        select: { checkDate: true, userId: true },
+    })
+
+    // 날짜별 성공자 수 map
+    const successMap = new Map<string, Set<number>>()
+    for (const h of histories) {
+        const key = toLocalDate(h.checkDate)
+        if (!successMap.has(key)) successMap.set(key, new Set())
+        successMap.get(key)!.add(Number(h.userId))
     }
 
     // 이번 달의 총 일수
@@ -116,13 +126,17 @@ export async function getTeamMonthlyHeatmap(habitId: string, year?: number, mont
     // 일자별 히트맵 구성
     const days = Array.from({ length: lastDay }, (_, i) => {
         const date = new Date(y, m - 1, i + 1)
-        const dateStr = toLocalDate(date)
-        const rec = map.get(dateStr)
+        const key = toLocalDate(date)
+        const teamRec = teamRecords.find(
+            (r) => toLocalDate(r.checkDate) === key
+        )
+        const userSet = successMap.get(key)
+        const successCount = userSet?.size ?? 0
         return {
-            date: dateStr,
-            count: rec?.count ?? 0,
-            isAnySuccess: (rec?.count ?? 0) > 0,
-            isCompleted: rec?.isCompleted ?? false,
+            date: key,
+            count: successCount,
+            isAnySuccess: successCount > 0,      // 누군가 성공했는가
+            isCompleted: teamRec?.isCompleted ?? false, // 팀 전체 성공 여부
         }
     })
 
@@ -179,26 +193,37 @@ export async function getTeamMemberProgress(habitId: string, year?: number, mont
 }
 
 // 4. 누적 통계 (팀 평균 vs 개인)
-export async function getTeamMonthlyStatsWithUser(habitId: string, userId: number) {
+export async function getTeamMonthlyStatsWithUser(habitId: string, userId: number, year?: number) {
     const hId = BigInt(habitId)
+
+    // year가 안 들어오면 현재 연도로 기본값 설정
     const now = new Date()
-    const y = now.getFullYear()
+    const y = year ?? now.getFullYear()
+
+    // y년도의 데이터만 필터링
+    const start = new Date(y, 0, 1)
+    const end = new Date(y + 1, 0, 1)
+
 
     // 1) 1년치 habitHistory 한 번에 가져오기
     const allHistory = await prisma.habitHistory.findMany({
         where: {
             habitId: hId,
             checkDate: {
-                gte: new Date(y, 0, 1),
-                lt: new Date(y + 1, 0, 1),
+                gte: start,
+                lt: end,
             },
         },
         select: { userId: true, checkDate: true, isCompleted: true },
     })
 
+    // 해당 팀 멤버 미리 불러오기 (매달 반복 호출 방지)
+    const members = await getTeamMembers(hId)
+
     // 2) 1~12월 루프 돌며 JS로 그룹화
     const months = Array.from({ length: 12 }, (_, i) => i + 1)
-    const results = months.map((m) => {
+    const results = await Promise.all(
+        months.map(async (m) => {
         const { start, end } = getMonthRange(y, m)
 
         // 이번 달 기록만 필터링
@@ -209,9 +234,8 @@ export async function getTeamMonthlyStatsWithUser(habitId: string, userId: numbe
         if (monthRecords.length === 0) return { month: `${m}월`, teamRate: 0, myRate: 0 }
 
         // 유저별로 그룹화
-        const users = Array.from(new Set(monthRecords.map(r => Number(r.userId))))
-        const groupedByUser = users.map(uid => {
-            const myDays = monthRecords.filter(r => Number(r.userId) === Number(BigInt(uid)) && r.isCompleted)
+        const groupedByUser = members.map(({ userId: uid }) => {
+            const myDays = monthRecords.filter(r => Number(r.userId) === uid && r.isCompleted)
             const unique = new Set(myDays.map(r => toLocalDate(r.checkDate)))
             return { uid, completed: unique.size }
         })
@@ -230,7 +254,7 @@ export async function getTeamMonthlyStatsWithUser(habitId: string, userId: numbe
 
         return { month: `${m}월`, teamRate, myRate }
     })
-
+    )
     // 5) [{ month, teamRate, myRate }] 형태 반환
     return results
 }
