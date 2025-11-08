@@ -21,14 +21,7 @@ export default function TeamProgressbarComponent({ data }: { data: any[] }) {
                                 ? 'text-amber-700'
                                 : ''
 
-                // 색상 팔레트 (팀원별 차이)
-                const gradients = [
-                    'from-emerald-400 to-emerald-600',
-                    'from-sky-400 to-sky-600',
-                    'from-violet-400 to-violet-600',
-                    'from-orange-400 to-orange-600',
-                ]
-                const color = gradients[i % gradients.length]
+
 
                 return (
                     <div key={m.nickname} className="space-y-1.5">
@@ -55,7 +48,7 @@ export default function TeamProgressbarComponent({ data }: { data: any[] }) {
                         {/* Progress Bar + Motion */}
                         <div className="relative w-full h-3 bg-gray-100 rounded-full overflow-hidden shadow-inner">
                             <motion.div
-                                className={`h-full bg-gradient-to-r ${color} rounded-full shadow-[0_0_5px_rgba(0,0,0,0.1)]`}
+                                className={`h-full bg-[#BFB8AD]/40 rounded-full shadow-[0_0_5px_rgba(0,0,0,0.1)]`}
                                 initial={{ width: 0 }}
                                 animate={{ width: `${rate}%` }}
                                 transition={{

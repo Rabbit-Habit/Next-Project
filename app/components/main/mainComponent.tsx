@@ -4,6 +4,7 @@ import * as PIXI from 'pixi.js';
 import {useCallback, useEffect, useRef, useState} from "react";
 import RabbitModal from "@/app/components/modal/rabbitModal";
 import {useRouter} from "next/navigation";
+import {submitCheckAction} from "@/app/habits/[habitId]/actions";
 
 type MainProps = {
     habit: {
@@ -448,6 +449,7 @@ function MainComponent({ habit }: MainProps) {
                 rabbitName={habit.rabbitName}
                 rabbitStatus={habit.rabbitStatus}
                 combo={habit.combo}
+                habitId={habit.habitId.toString()}
             />
 
             <div
