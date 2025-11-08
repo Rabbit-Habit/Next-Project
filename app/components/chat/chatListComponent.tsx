@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {useEffect, useMemo, useRef, useState} from "react";
 import {useSession} from "next-auth/react";
+import Header from "@/app/components/common/header";
 
 export default function ChatListComponent({ habits }: { habits: any }) {
 
@@ -112,6 +113,8 @@ export default function ChatListComponent({ habits }: { habits: any }) {
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
+            <Header title="내 채팅방" />
+            
             {/* 채팅방 목록 */}
             <div className="flex-1 p-4 flex flex-col gap-3 overflow-y-auto">
                 {sorted.length === 0 ? (
@@ -143,8 +146,8 @@ export default function ChatListComponent({ habits }: { habits: any }) {
                                 href={`/chat/${channel?.channelId}`}
                                 className={`relative flex items-center rounded-xl shadow p-4 transition ${
                                     unread
-                                        ? "bg-blue-50 border border-blue-200"
-                                        : "bg-white hover:bg-blue-50"
+                                        ? "bg-[#FDF8F3] border border-[#EBC5A7]/60"
+                                        : "bg-white hover:bg-[#FDF8F3]/50"
                                 }`}
                             >
                                 {/* 왼쪽: 아이콘 + 제목 + 마지막 메시지 */}
@@ -163,11 +166,15 @@ export default function ChatListComponent({ habits }: { habits: any }) {
                                             {/* 팀 이름 + 인원수 */}
                                             {habit.team && (
                                                 <span className="text-[12px] text-gray-400 truncate flex items-center gap-1">
-                                                  | {habit.team.name}
-
-                                                      <span className="text-gray-400">
-                                                        ({habit.team.members?.length ?? 0}명)
+                                                  |
+                                                  {habit.team.members?.length > 1 && (
+                                                      <span>
+                                                          {habit.team.name}
                                                       </span>
+                                                  )}
+                                                  <span className="text-gray-400">
+                                                    ({habit.team.members?.length ?? 0}명)
+                                                  </span>
                                                 </span>
                                             )}
                                         </div>
@@ -187,22 +194,20 @@ export default function ChatListComponent({ habits }: { habits: any }) {
 
 
                                 {/* 오른쪽 상단: NEW + 시간 */}
-                                <div className="absolute top-3 right-4 flex flex-col items-end gap-2">
+                                <div className="absolute top-3 right-4 flex flex-col items-end gap-1">
                                     {lastTime && (
                                         <span
                                             className={`text-[11px] whitespace-nowrap ${
-                                                unread
-                                                    ? "text-blue-600 font-medium"
-                                                    : "text-gray-400"
+                                                unread ? "text-[#000000]/70 font-medium" : "text-[#000000]/40"
                                             }`}
                                         >
                                             {lastTime}
-                                        </span>
+                                          </span>
                                     )}
                                     {unread && (
-                                        <span
-                                            className="text-[10px] text-blue-600 font-semibold bg-blue-100 px-2 py-0.5 rounded-full">
-                                            NEW
+                                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-sm
+                                          bg-[#F5A7A7]/60 text-[#000000]/80">
+                                          NEW
                                         </span>
                                     )}
                                 </div>
