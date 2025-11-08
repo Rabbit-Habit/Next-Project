@@ -270,7 +270,7 @@ export default function ChatClientComponent({
                 {/* 왼쪽: 뒤로가기 + 타이틀 */}
                 <div className="flex items-center gap-3">
                     <button
-                        onClick={() => router.push("/chat")}
+                        onClick={() => router.back()}
                         className="p-2 rounded hover:bg-gray-100 text-gray-600 hover:text-gray-800 transition"
                     >
                         <IoArrowBackOutline size={22} />
