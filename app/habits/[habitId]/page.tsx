@@ -1,6 +1,6 @@
 import {notFound} from "next/navigation";
 import prisma from "@/lib/prisma";
-import HabitDetail from "@/app/habits/[habitId]/HabitDetail.server";
+import HabitDetail2 from "@/app/habits/[habitId]/HabitDetail2.server";
 
 export function toBigint(id: string) {
     try {
@@ -39,7 +39,12 @@ export default async function HabitDetailPage(
 
     if (!habit) return notFound();
 
-    const memberCount = await prisma.teamMember.count( {where: {teamId: habit.teamId }});
+    // ✅ teamId가 있을 때만 count
+    const memberCount = habit.teamId
+        ? await prisma.teamMember.count({
+            where: { teamId: habit.teamId },
+        })
+        : 0;
 
     // DTO 직렬화
     const dto = {
@@ -57,5 +62,7 @@ export default async function HabitDetailPage(
         teamName: habit.team?.name ?? null,
     } as const;
 
-    return <HabitDetail habit={dto} memberCount={memberCount} />
+    return <HabitDetail2 habit={dto} memberCount={memberCount} />
+
+
 }
