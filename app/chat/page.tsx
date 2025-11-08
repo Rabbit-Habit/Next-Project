@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import ChatListComponent from "@/app/components/chat/chatListComponent";
 import {getServerSession} from "next-auth";
 import {authOptions} from "@/app/api/auth/[...nextauth]/route";
+import Header from "@/app/components/common/header";
 export default async function ChatListPage() {
 
     // 로그인 uid 가져오기
@@ -36,6 +37,9 @@ export default async function ChatListPage() {
     });
 
     return (
-        <ChatListComponent habits={habits} />
+        <div>
+            <Header title={"내 채팅방"} backUrl={"/users/mypage"} />
+            <ChatListComponent habits={filteredHabits} />
+        </div>
     );
 }
