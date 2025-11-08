@@ -21,13 +21,10 @@ export default function HeatmapComponent({
 
     // 날짜 칸 색상 (히트맵 색상)
     const color = (d: { isAnySuccess: boolean; isCompleted: boolean }) => {
-        if (!d.isAnySuccess) return "bg-gray-200 border border-gray-200"
-        if (!d.isCompleted) return "bg-emerald-200 border border-emerald-300"
-        return "bg-emerald-400 border border-emerald-500"
+        if (!d.isAnySuccess) return "bg-gray-200/60 border border-gray-200/60"
+        if (!d.isCompleted) return "bg-[#FFF3D9] border border-[#FFF3D9]"
+        return "bg-[#FFE6A7] border border-[#FFE6A7]"
     }
-
-    const textShadow = (d: { isCompleted: boolean }) =>
-        d.isCompleted ? { textShadow: "0 0 1px rgba(0,0,0,0.6)" } : {}
 
     // 통계 계산
     const totalDays = days.length
@@ -73,8 +70,8 @@ export default function HeatmapComponent({
                                     )}`}
                                 >
                                   <span
-                                      className={`text-[10px] text-white font-semibold`}
-                                      style={textShadow(d)}
+                                      className="text-[11px] font-semibold text-white"
+                                      style={{ opacity: 0.9 }}
                                   >
                                     {dayNum}
                                   </span>

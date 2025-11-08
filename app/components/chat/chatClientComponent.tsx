@@ -5,6 +5,7 @@ import {deleteMessageAction, loadOlderMessagesAction, sendMessageAction} from "@
 import {useRouter} from "next/navigation";
 import {IoArrowBackOutline} from "react-icons/io5";
 import {useSession} from "next-auth/react";
+import {Send, SendHorizonal} from "lucide-react";
 
 export default function ChatClientComponent({
     channelId,
@@ -21,6 +22,7 @@ export default function ChatClientComponent({
 }) {
 
     const router = useRouter();
+    
 
     // 로그인 uid 가져오기
     const { data: session } = useSession();
@@ -372,61 +374,67 @@ export default function ChatClientComponent({
                                     />
                                 )}
 
-                                <div className="flex flex-col max-w-xs">
+                                <div className="flex flex-col max-w-xs relative">
                                     {!isMine && (
                                         <span className="font-bold text-xs mb-1">
                                             {m.user?.nickname || m.userId}
                                         </span>
                                     )}
-                                    <div
-                                        className={`relative p-2 rounded-xl shadow-md text-sm ${
-                                            isMine
-                                                ? "bg-blue-500 text-white self-end rounded-br-none"
-                                                : "bg-gray-200 text-black self-start rounded-bl-none"
-                                        }`}
-                                    >
-                                        {m.content}
-                                        {isMine && (() => {
-                                            const now = new Date();
-                                            const sent = new Date(m.regDate);
-                                            const diffMinutes = (now.getTime() - sent.getTime()) / (1000 * 60);
+                                    <div className={`flex items-end gap-1 ${isMine ? "flex-row-reverse" : "flex-row"}`}>
+                                        <div
+                                            className={`relative p-2 rounded-xl shadow-md text-sm break-words whitespace-pre-wrap max-w-[70vw] sm:max-w-300%] ${
+                                                isMine
+                                                    ? "bg-[#EED0B9]/50 text-black self-end rounded-br-none"
+                                                    : "bg-gray-200 text-black self-start rounded-bl-none"
+                                            }`}
+                                        >
+                                            {m.content}
+                                            {isMine && (() => {
+                                                const now = new Date();
+                                                const sent = new Date(m.regDate);
+                                                const diffMinutes = (now.getTime() - sent.getTime()) / (1000 * 60);
 
-                                            // 보낸 지 1시간 이내일 때만 버튼 표시
-                                            if (diffMinutes <= 60) {
-                                                return (
-                                                    <button
-                                                        onClick={async () => {
-                                                            const res = await deleteMessageAction(m.messageId, uid);
-                                                            if (res.ok) {
-                                                                setMessages((prev) =>
-                                                                    prev.filter((msg) => msg.messageId !== m.messageId)
-                                                                );
-                                                                if (wsRef.current?.readyState === WebSocket.OPEN) {
-                                                                    wsRef.current.send(
-                                                                        JSON.stringify({
-                                                                            type: "delete",
-                                                                            channelId: Number(channelId),
-                                                                            messageId: m.messageId,
-                                                                        })
+                                                // 보낸 지 1시간 이내일 때만 버튼 표시
+                                                if (diffMinutes <= 60) {
+                                                    return (
+                                                        <button
+                                                            onClick={async () => {
+                                                                const res = await deleteMessageAction(m.messageId, uid);
+                                                                if (res.ok) {
+                                                                    setMessages((prev) =>
+                                                                        prev.filter((msg) => msg.messageId !== m.messageId)
                                                                     );
+                                                                    if (wsRef.current?.readyState === WebSocket.OPEN) {
+                                                                        wsRef.current.send(
+                                                                            JSON.stringify({
+                                                                                type: "delete",
+                                                                                channelId: Number(channelId),
+                                                                                messageId: m.messageId,
+                                                                            })
+                                                                        );
+                                                                    }
                                                                 }
-                                                            }
-                                                        }}
-                                                        className="absolute -top-2 -right-2 bg-white border text-red-500 text-xs px-1 rounded shadow hover:bg-red-50"
-                                                    >
-                                                        ✕
-                                                    </button>
-                                                );
-                                            }
-                                            return null; // 1시간 지났으면 버튼 안 보이게
-                                        })()}
+                                                            }}
+                                                            className="absolute -top-2 -right-2 bg-white border text-red-500 text-xs px-1 rounded shadow hover:bg-red-50"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    );
+                                                }
+                                                return null; // 1시간 지났으면 버튼 안 보이게
+                                            })()}
+                                        </div>
+
+                                        {/* 읽음 수 */}
+                                        {unreadCount > 0 && (
+                                            <span className="flex items-center gap-[3px] text-[10px] text-[#E57373]/80">
+                                                  {unreadCount}
+                                            </span>
+                                        )}
+
+
                                     </div>
 
-                                    {unreadCount > 0 && (
-                                        <span className="ml-1 text-[11px] text-blue-500 font-medium">
-                                            {unreadCount}
-                                        </span>
-                                    )}
                                     <span
                                         className={`text-xs text-gray-500 mt-1 ${
                                             isMine ? "text-right" : "text-left"
@@ -458,16 +466,18 @@ export default function ChatClientComponent({
                 <input
                     ref={inputRef}
                     type="text"
-                    className="flex-1 border rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="flex-1 border border-[#F5D1D1]/60 rounded-full px-4 py-2
+               bg-white/60 focus:outline-none focus:ring-2 focus:ring-[#FADCD9]"
                     placeholder={"메시지를 입력하세요"}
                     disabled={uid === -1}
                 />
                 <button
                     type="submit"
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full disabled:opacity-50"
+                    className="bg-[#EBC5A7]/60 hover:bg-[#F8B2B2]/60 text-gray-600 px-4 py-2
+               rounded-full transition-all shadow-sm font-medium"
                     disabled={uid === -1}
                 >
-                    전송
+                    <Send className="w-5 h-5" />
                 </button>
             </form>
         </div>
