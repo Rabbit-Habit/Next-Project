@@ -43,10 +43,10 @@ export default function InviteCodeCard({
     };
 
     return (
-        <div className="p-4 border rounded-2xl">
+        <div className="p-4 ">
             <h2 className="font-semibold mb-2">초대코드</h2>
             {invite ? (
-                <div className="flex items-center gap-2 text-sm bg-gray-50 border rounded-xl px-3 py-2">
+                <div className="flex items-center gap-2 text-sm text-[#6B4B37] bg-[#FFF2E0] rounded-2xl px-3 py-2">
                     <span className="font-mono">{invite}</span>
                     <button type="button" onClick={copy} className="ml-auto px-2 py-1 border rounded-lg">
                         복사

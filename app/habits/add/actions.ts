@@ -46,7 +46,7 @@ export async function createPersonalHabit(input: z.infer<typeof personalHabitSch
 
     const now = new Date()
     const oneMinAgo = new Date(now.getTime() - 60_000)
-    const gcount = parsed.data.goalCount != null ? BigInt(parsed.data.goalCount) : null
+    const gcount = BigInt(parsed.data.goalCount ?? 1)
 
     try {
 

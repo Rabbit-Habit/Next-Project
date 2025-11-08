@@ -1,15 +1,16 @@
 "use client";
 
+import React from "react";
 import { useState, useTransition } from "react";
 import {
     createPersonalHabit,
     createTeamHabit,
     joinTeamByInvite,
 } from "@/app/habits/add/actions";
-import {useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
 import SuccessModal from "@/app/components/modal/successModal";
 import FailModal from "@/app/components/modal/failModal";
-import {Button} from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 
 // 폼 모드: 개인 생성 / 팀 생성 / 초대코드 참여
 type Mode = "personal" | "team_create" | "team_join";
@@ -44,7 +45,6 @@ export default function HabitForm() {
         if (!generatedInvite) return;
         try {
             await navigator.clipboard.writeText(generatedInvite);
-            // 원하면 토스트/간단 문구 상태로 알려주기
         } catch {
             setOpenFail(true);
         }
@@ -56,10 +56,12 @@ export default function HabitForm() {
 
     const onSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (locked || pending) return
-        setLocked(true)
+        if (locked || pending) return;
+        setLocked(true);
 
         setGeneratedInvite(null);
+        setMessage(null);
+        setError(null);
 
         startTransition(async () => {
             try {
@@ -85,7 +87,7 @@ export default function HabitForm() {
                         generateInvite: autoInvite,
                     });
                     if (res.ok) {
-                        if ('inviteCode' in res && res.inviteCode) {
+                        if ("inviteCode" in res && res.inviteCode) {
                             setGeneratedInvite(res.inviteCode);
                             setOpenInviteModal(true);
                         } else {
@@ -105,15 +107,17 @@ export default function HabitForm() {
             } catch (err: any) {
                 setError(err?.message || "알 수 없는 오류가 발생했어요.");
             } finally {
-                setLocked(false)
+                setLocked(false);
             }
         });
     };
 
     const disableSubmit =
-        pending || locked ||
+        pending ||
+        locked ||
         (mode === "personal" && (!title.trim() || !rabbitName.trim())) ||
-        (mode === "team_create" && (!teamName.trim() || !title.trim() || !rabbitName.trim())) ||
+        (mode === "team_create" &&
+            (!teamName.trim() || !title.trim() || !rabbitName.trim())) ||
         (mode === "team_join" && !inviteCode.trim());
 
     const copyInvite = async () => {
@@ -127,163 +131,321 @@ export default function HabitForm() {
     };
 
     return (
-        <>
-            {/*팀 코드 생성 모달*/}
-            <SuccessModal
-                open={openInviteModal}
-                onClose={() => {
-                    setOpenInviteModal(false);
-                    router.push("/habits");
-                }}
-                title="팀 생성 완료!"
-                description={
-                    <div className="space-y-3">
-                        아래 초대코드를 팀원과 공유하세요.
-                        <div className="flex items-center gap-2 bg-gray-50 border rounded-xl px-3 py-2">
-                            <span className="font-mono">{generatedInvite}</span>
-                            <Button
-                                type="button"
-                                onClick={copyInviteInModal}
-                                className="ml-auto"
-                            >
-                                복사
-                            </Button>
+        <div
+            className="
+                w-full min-h-[calc(100vh-80px)]
+                bg-gradient-to-b from-[#FFF5E6] via-[#FAE8CA] to-[#F5D7B0]
+                flex justify-center items-start
+                px-4 py-8
+            "
+        >
+            <div className="w-full max-w-md">
+                {/*팀 코드 생성 모달*/}
+                <SuccessModal
+                    open={openInviteModal}
+                    onClose={() => {
+                        setOpenInviteModal(false);
+                        router.push("/habits");
+                    }}
+                    title="팀 생성 완료!"
+                    description={
+                        <div className="space-y-3 text-sm">
+                            <p>아래 초대코드를 팀원과 공유해 함께 토끼를 키워보세요 🐰🤎</p>
+                            <div className="flex items-center gap-2 bg-[#FDF4E3] border border-[#E5C9A6] rounded-xl px-3 py-2">
+                                <span className="font-mono text-xs text-[#5C3B28]">
+                                    {generatedInvite}
+                                </span>
+                                <Button
+                                    type="button"
+                                    onClick={copyInviteInModal}
+                                    className="ml-auto bg-[#F1C9A5] hover:bg-[#E4B88F] text-[#4A2F23] rounded-lg px-3 py-1 text-xs"
+                                >
+                                    코드 복사
+                                </Button>
+                            </div>
                         </div>
-                    </div>
-                }
-            />
+                    }
+                />
 
-            {/*일반 성공 모달*/}
-            <SuccessModal
-                open={openSuccess}
-                onClose={() => {
-                    setOpenSuccess(false);
-                    router.push("/habits"); // ✅ 저장 후 목록으로 이동
-                }}
-                title="저장 완료!"
-                description="습관이 성공적으로 추가되었습니다."
-            />
+                {/*일반 성공 모달*/}
+                <SuccessModal
+                    open={openSuccess}
+                    onClose={() => {
+                        setOpenSuccess(false);
+                        router.push("/habits"); // ✅ 저장 후 목록으로 이동
+                    }}
+                    title="저장 완료!"
+                    description="새로운 토끼가 농장에 입장했어요 🐇✨"
+                />
 
-            {/*실패 모달*/}
-            <FailModal
-                open={openFail}
-                onClose={() => setOpenFail(false)}
-                title="실패"
-                description="저장 중 문제가 발생했습니다."
-            />
+                {/*실패 모달*/}
+                <FailModal
+                    open={openFail}
+                    onClose={() => setOpenFail(false)}
+                    title="실패"
+                    description="저장 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요."
+                />
 
-            <form onSubmit={onSubmit} className="space-y-6">
-                {/* 탭 */}
-                <div className="grid grid-cols-3 gap-2">
-                    {["personal", "team_create", "team_join"].map((m) => (
-                        <button
-                            key={m}
-                            type="button"
-                            onClick={() => setMode(m as Mode)}
-                            className={`py-2 rounded-xl border transition ${
-                                mode === m ? "bg-black text-white" : "bg-white hover:bg-gray-50"
-                            }`}
-                        >
-                            {m === "personal" ? "개인 습관" : m === "team_create" ? "팀 습관 생성" : "초대코드 참여"}
-                        </button>
-                    ))}
-                </div>
-
-                {/* 공통 입력: 개인/팀 생성 */}
-                {mode !== "team_join" && (
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium">제목</label>
-                            <input
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                className="w-full border rounded-xl px-3 py-2"
-                                placeholder="예) 물 2L 마시기"
-                                autoFocus
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium">토끼 이름</label>
-                            <input
-                                value={rabbitName}
-                                onChange={(e) => setRabbitName(e.target.value)}
-                                className="w-full border rounded-xl px-3 py-2"
-                                placeholder="예) 토벅이"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium">목표 상세 (선택)</label>
-                            <input
-                                value={goalDetail}
-                                onChange={(e) => setGoalDetail(e.target.value)}
-                                className="w-full border rounded-xl px-3 py-2"
-                                placeholder="예) 오전 500ml / 오후 500ml / 저녁 1L"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium">목표 횟수 (선택)</label>
-                            <input
-                                type="number"
-                                min={1}
-                                value={goalCount}
-                                onChange={(e) => setGoalCount(e.target.value)}
-                                className="w-full border rounded-xl px-3 py-2"
-                                placeholder="예) 3"
-                            />
-                        </div>
-                    </div>
-                )}
-
-                {/* 팀 생성 전용 입력 */}
-                {mode === "team_create" && (
-                    <div className="space-y-2">
-                        <label className="block text-sm font-medium">팀 이름</label>
-                        <input
-                            value={teamName}
-                            onChange={(e) => setTeamName(e.target.value)}
-                            className="w-full border rounded-xl px-3 py-2"
-                            placeholder="예) 아침독서-5인팀"
-                        />
-
-                        <label className="inline-flex items-center gap-2 text-sm mt-2">
-                            <input
-                                type="checkbox"
-                                checked={autoInvite}
-                                onChange={(e) => setAutoInvite(e.target.checked)}
-                            />
-                            생성 시 초대코드 만들기
-                        </label>
-                    </div>
-                )}
-
-                {/* 초대코드 참여 전용 입력 */}
-                {mode === "team_join" && (
-                    <div className="space-y-2">
-                        <label className="block text-sm font-medium">초대코드</label>
-                        <input
-                            value={inviteCode}
-                            onChange={(e) => setInviteCode(e.target.value)}
-                            className="w-full border rounded-xl px-3 py-2"
-                            placeholder="예) RH-ABCD-1234"
-                        />
-                        <p className="text-xs text-gray-500">초대받은 경우 코드를 입력하면 팀에 합류합니다.</p>
-                    </div>
-                )}
-
-                <button
-                    type="submit"
-                    disabled={disableSubmit}
-                    className="w-full py-3 rounded-xl font-semibold border bg-black text-white disabled:opacity-50"
+                {/* 카드 래퍼 (그대로 유지) */}
+                <form
+                    onSubmit={onSubmit}
+                    className="
+                        mt-2 w-full
+                        rounded-3xl border border-[#F0D4B2]
+                        bg-gradient-to-b from-[#FFF9F1] to-[#F7E4CC]
+                        shadow-md px-6 py-7 space-y-6
+                    "
                 >
-                    {pending ? "처리 중…" : mode === "team_join" ? "팀 참여하기" : "저장하기"}
-                </button>
+                    {/* 상단 타이틀 + 설명 */}
+                    <div className="space-y-1 text-center">
+                        <h2 className="text-lg font-bold text-[#4A2F23]">
+                            🐰 Rabbit Habit
+                        </h2>
+                        <p className="text-xs text-[#7A5A46]">
+                            개인 / 팀 / 초대코드 중 하나를 골라
+                            <br />
+                            나만의 토끼를 입양해 보세요!
+                        </p>
+                    </div>
 
-                {message && <p className="text-green-600">{message}</p>}
-                {error && <p className="text-red-600">{error}</p>}
-            </form>
-        </>
+                    {/* 탭 영역 (베이지 3탭) */}
+                    <div
+                        className="
+                            grid grid-cols-3
+                            rounded-2xl overflow-hidden
+                            border border-[#F0D4B2]
+                            bg-[#F9EBDA]
+                            text-[11px] sm:text-xs
+                        "
+                    >
+                        {/* 개인 습관 */}
+                        <button
+                            type="button"
+                            onClick={() => setMode("personal")}
+                            className={`
+                                py-3 px-2 text-center relative isolate transition-all duration-300
+                                ${
+                                mode === "personal"
+                                    ? "bg-[#FBEAD4] text-[#D07B4A] font-semibold shadow-inner cursor-default"
+                                    : "text-[#8C6A54] hover:bg-[#F7DFC7] hover:text-[#4A2F23]"
+                            }
+                            `}
+                        >
+                            🐰 개인 습관
+                        </button>
+
+                        {/* 팀 습관 생성 */}
+                        <button
+                            type="button"
+                            onClick={() => setMode("team_create")}
+                            className={`
+                                py-3 px-2 text-center relative isolate transition-all duration-300
+                                border-x border-[#E7C8A9]
+                                ${
+                                mode === "team_create"
+                                    ? "bg-[#FBEAD4] text-[#D07B4A] font-semibold shadow-inner cursor-default"
+                                    : "text-[#8C6A54] hover:bg-[#F7DFC7] hover:text-[#4A2F23]"
+                            }
+                            `}
+                        >
+                            👯 팀 습관
+                        </button>
+
+                        {/* 초대코드 참여 */}
+                        <button
+                            type="button"
+                            onClick={() => setMode("team_join")}
+                            className={`
+                                py-3 px-2 text-center relative isolate transition-all duration-300
+                                ${
+                                mode === "team_join"
+                                    ? "bg-[#FBEAD4] text-[#D07B4A] font-semibold shadow-inner cursor-default"
+                                    : "text-[#8C6A54] hover:bg-[#F7DFC7] hover:text-[#4A2F23]"
+                            }
+                            `}
+                        >
+                            🔑 초대코드
+                        </button>
+                    </div>
+
+                    {/* 공통 입력: 개인/팀 생성 */}
+                    {mode !== "team_join" && (
+                        <div className="space-y-4 rounded-2xl bg-[#FFF7EC] px-4 py-4 border border-[#F0D4B2]/60">
+                            <div className="space-y-1">
+                                <label className="block text-xs font-semibold text-[#5C3B28]">
+                                    제목
+                                </label>
+                                <input
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    className="
+                                        w-full border border-[#F0D4B2]/80 rounded-2xl px-3 py-2
+                                        text-sm bg-[#FFFDF8] text-[#4A2F23]
+                                        focus:outline-none focus:ring-2 focus:ring-[#F1C9A5] focus:border-transparent
+                                    "
+                                    placeholder="예) 물 2L 마시기 💧"
+                                    autoFocus
+                                />
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="block text-xs font-semibold text-[#5C3B28]">
+                                    토끼 이름
+                                </label>
+                                <input
+                                    value={rabbitName}
+                                    onChange={(e) => setRabbitName(e.target.value)}
+                                    className="
+                                        w-full border border-[#F0D4B2]/80 rounded-2xl px-3 py-2
+                                        text-sm bg-[#FFFDF8] text-[#4A2F23]
+                                        focus:outline-none focus:ring-2 focus:ring-[#F1C9A5] focus:border-transparent
+                                    "
+                                    placeholder="예) 토벅이 🐇"
+                                />
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="block text-xs font-semibold text-[#5C3B28]">
+                                    목표 상세 (선택)
+                                </label>
+                                <p className="text-[10px] text-[#9B7A63] mt-0.5">
+                                    언제, 어떻게 등 목표에 대해 자세히 기록해보세요.
+                                </p>
+                                <input
+                                    value={goalDetail}
+                                    onChange={(e) => setGoalDetail(e.target.value)}
+                                    className="
+                                        w-full border border-[#F0D4B2]/80 rounded-2xl px-3 py-2
+                                        text-sm bg-[#FFFDF8] text-[#4A2F23]
+                                        focus:outline-none focus:ring-2 focus:ring-[#F1C9A5] focus:border-transparent
+                                    "
+                                    placeholder="예) 오전 500ml / 오후 500ml / 저녁 1L"
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 팀 생성 전용 입력 */}
+                    {mode === "team_create" && (
+                        <div className="space-y-3 rounded-2xl bg-[#FBEAD4] px-4 py-4 border border-[#E7C8A9]">
+                            <div className="space-y-1">
+                                <label className="block text-xs font-semibold text-[#5C3B28]">
+                                    목표 인원
+                                </label>
+                                <p className="text-[10px] text-[#9B7A63] mt-0.5">
+                                    목표를 달성할 최소 인원을 입력해주세요.
+                                </p>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    value={goalCount}
+                                    onChange={(e) => setGoalCount(e.target.value)}
+                                    className="
+                                        w-full border border-[#F0D4B2]/80 rounded-2xl px-3 py-2
+                                        text-sm bg-[#FFFDF8] text-[#4A2F23]
+                                        focus:outline-none focus:ring-2 focus:ring-[#F1C9A5] focus:border-transparent
+                                    "
+                                    placeholder="예) 3"
+                                />
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="block text-xs font-semibold text-[#5C3B28]">
+                                    팀 이름
+                                </label>
+                                <input
+                                    value={teamName}
+                                    onChange={(e) => setTeamName(e.target.value)}
+                                    className="
+                                        w-full border border-[#F0D4B2]/80 rounded-2xl px-3 py-2
+                                        text-sm bg-[#FFFDF8] text-[#4A2F23]
+                                        focus:outline-none focus:ring-2 focus:ring-[#F1C9A5] focus:border-transparent
+                                    "
+                                    placeholder="예) 아침독서 5인팀 📚"
+                                />
+                            </div>
+
+                            <label className="inline-flex items-center gap-2 text-xs mt-1 text-[#6D4B36]">
+                                <input
+                                    type="checkbox"
+                                    checked={autoInvite}
+                                    onChange={(e) => setAutoInvite(e.target.checked)}
+                                    className="rounded border-[#E0B58C] text-[#D07B4A] focus:ring-[#F1C9A5]"
+                                />
+                                <span>생성 시 초대코드도 같이 만들기</span>
+                            </label>
+
+                            {generatedInvite && (
+                                <div className="mt-2 text-xs text-[#6D4B36] space-y-1">
+                                    <p>생성된 초대코드</p>
+                                    <div className="flex items-center gap-2 bg-[#FFF7EC] rounded-xl px-3 py-2 border border-[#F0D4B2]">
+                                        <span className="font-mono text-xs">
+                                            {generatedInvite}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={copyInvite}
+                                            className="ml-auto text-[11px] px-2 py-1 rounded-lg bg-[#F1C9A5] hover:bg-[#E4B88F] text-[#4A2F23]"
+                                        >
+                                            코드 복사
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* 초대코드 참여 전용 입력 */}
+                    {mode === "team_join" && (
+                        <div className="space-y-2 rounded-2xl bg-[#FBEAD4] px-4 py-4 border border-[#E7C8A9]">
+                            <label className="block text-xs font-semibold text-[#5C3B28]">
+                                초대코드
+                            </label>
+                            <input
+                                value={inviteCode}
+                                onChange={(e) => setInviteCode(e.target.value)}
+                                className="
+                                    w-full border border-[#F0D4B2]/80 rounded-2xl px-3 py-2
+                                    text-sm bg-[#FFFDF8] text-[#4A2F23]
+                                    focus:outline-none focus:ring-2 focus:ring-[#F1C9A5] focus:border-transparent
+                                    tracking-widest font-mono
+                                "
+                                placeholder="예) RH-ABCD-1234"
+                            />
+                            <p className="text-[10px] text-[#9B7A63]">
+                                친구에게 받은 초대코드를 입력하면 같은 토끼 농장에서 함께 습관을 키울 수 있어요 🤝
+                            </p>
+                        </div>
+                    )}
+
+                    {/* 제출 버튼 */}
+                    <Button
+                        type="submit"
+                        disabled={disableSubmit}
+                        className={`
+                            w-full py-3 rounded-2xl text-sm font-semibold shadow-sm border border-[#E0B693]/60
+                            ${
+                            disableSubmit
+                                ? "bg-[#F3DEC6] text-[#B39A82] cursor-not-allowed"
+                                : "bg-[#F1C9A5] hover:bg-[#E4B88F] text-[#4A2F23]"
+                        }
+                        `}
+                    >
+                        {pending
+                            ? "토끼 준비 중… 🥕"
+                            : mode === "team_join"
+                                ? "팀 참여하기"
+                                : "토끼 입양하기"}
+                    </Button>
+
+                    {message && (
+                        <p className="text-xs text-green-700 text-center">{message}</p>
+                    )}
+                    {error && (
+                        <p className="text-xs text-red-600 text-center">{error}</p>
+                    )}
+                </form>
+            </div>
+        </div>
     );
 }

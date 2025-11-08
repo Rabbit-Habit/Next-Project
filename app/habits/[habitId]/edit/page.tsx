@@ -67,7 +67,7 @@ export default async function HabitEditPage(
     }
 
     return (
-        <div className="p-6 max-w-xl mx-auto">
+        <div>
             <Header title="습관 수정" />
             <HabitEditForm habit={viewModel} />
         </div>

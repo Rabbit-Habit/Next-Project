@@ -22,7 +22,7 @@ async function didSucceedOnDate(habitId: bigint, teamId: bigint | null, goalCoun
     if (p > 0) return true;
     // 팀 성공? (팀 기여 수 >= goal)
     if (teamId && goalCount && goalCount > BigInt(0)) {
-        const c = await prisma.teamHabitHistory.count({
+        const c = await prisma.habitTeamHistory.count({
             where: { habitId, teamId, checkDate, isCompleted: true },
         });
         if (BigInt(c) >= goalCount) return true;
@@ -46,7 +46,7 @@ async function finalizeOne(habitId: bigint) {
 
     let teamCompleted = false;
     if (habit.teamId && (habit.goalCount ?? BigInt(0)) > BigInt(0)) {
-        const c = await prisma.teamHabitHistory.count({
+        const c = await prisma.habitTeamHistory.count({
             where: { habitId, teamId: habit.teamId, checkDate: today, isCompleted: true },
         });
         teamCompleted = BigInt(c) >= (habit.goalCount ?? BigInt(0));
