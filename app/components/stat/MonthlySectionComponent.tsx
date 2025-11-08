@@ -40,7 +40,7 @@ export default function MonthlySectionComponent({ habitId }: { habitId: string }
             setHeatmapData(heatmap)
             setProgressData(progress)
         } finally {
-            setTimeout(() => setLoading(false), 200)
+            setTimeout(() => setLoading(false), 100)
         }
     }
 

@@ -35,10 +35,7 @@ export default async function ChatListPage() {
         },
     });
 
-    // 2명 이상 팀만 필터링
-    const filteredHabits = habits.filter((h) => h.team!.members.length > 1);
-
     return (
-        <ChatListComponent habits={filteredHabits} />
+        <ChatListComponent habits={habits} />
     );
 }
