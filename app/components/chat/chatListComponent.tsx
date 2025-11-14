@@ -4,6 +4,17 @@ import Link from "next/link";
 import {useEffect, useMemo, useRef, useState} from "react";
 import {useSession} from "next-auth/react";
 import Header from "@/app/components/common/header";
+import {
+    Bubbles,
+    Inbox,
+    Mail, MailCheck,
+    MessageCircle,
+    MessageCircleMore,
+    MessageSquare,
+    MessageSquareText,
+    MessagesSquare, NotebookText,
+    Send, Speech, Stamp
+} from "lucide-react";
 
 export default function ChatListComponent({ habits }: { habits: any }) {
 
@@ -112,13 +123,12 @@ export default function ChatListComponent({ habits }: { habits: any }) {
     }, [habitList]);
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="min-h-screen bg-gradient-to-b from-[#FFF5E6] via-[#FAE8CA] to-[#F5D7B0] flex flex-col">
             <Header title="내 채팅방" />
-            
-            {/* 채팅방 목록 */}
-            <div className="flex-1 p-4 flex flex-col gap-3 overflow-y-auto">
+
+            <div className="flex-1 p-4 flex flex-col gap-4 overflow-y-auto">
                 {sorted.length === 0 ? (
-                    <p className="text-gray-500">참여 중인 채팅방이 없습니다.</p>
+                    <p className="text-[#9B7A63] text-center">참여 중인 채팅방이 없습니다.</p>
                 ) : (
                     sorted.map((habit) => {
                         const channel = habit.chatChannel;
@@ -130,7 +140,6 @@ export default function ChatListComponent({ habits }: { habits: any }) {
                             })
                             : "";
 
-                        // 읽지 않은 채팅방 판별
                         const unread =
                             lastMsg &&
                             lastMsg.userId !== Number(uid) &&
@@ -144,70 +153,112 @@ export default function ChatListComponent({ habits }: { habits: any }) {
                             <Link
                                 key={habit.habitId.toString()}
                                 href={`/chat/${channel?.channelId}`}
-                                className={`relative flex items-center rounded-xl shadow p-4 transition ${
+                                className={`relative flex items-center rounded-3xl px-4 py-4 border shadow-sm transition
+                                ${
                                     unread
-                                        ? "bg-[#FDF8F3] border border-[#EBC5A7]/60"
-                                        : "bg-white hover:bg-[#FDF8F3]/50"
+                                        ? "bg-[#FFE5E5]/30 border-[#FFC8C8] shadow-[0_0_8px_rgba(255,200,200,0.35)]"
+                                        : "bg-white/80 hover:bg-[#FFF5EB] border-[#F0D4B2]"
                                 }`}
-                            >
-                                {/* 왼쪽: 아이콘 + 제목 + 마지막 메시지 */}
-                                <div className="flex items-start gap-3 overflow-hidden pr-20">
-                                    <span className="text-2xl mt-1">💬</span>
-                                    <div className="flex flex-col overflow-hidden">
-                                        <div className="flex items-center gap-1 flex-wrap">
-                                              <span
-                                                  className={`font-semibold truncate max-w-[200px] sm:max-w-[280px] ${
-                                                      unread ? "text-gray-900" : "text-gray-700"
-                                                  }`}
-                                              >
-                                                {habit.title || "이름 없는 습관"}
-                                              </span>
 
-                                            {/* 팀 이름 + 인원수 */}
+                            >
+                                {/* LEFT: 아이콘 + 제목 + 메시지 */}
+                                <div className="flex items-start gap-3 overflow-hidden pr-20">
+                                    <div className="
+                                        flex-shrink-0
+                                        w-10 h-10
+                                        rounded-full
+                                        bg-[#FBEAD4]
+                                        border border-[#E7C8A9]
+                                        flex items-center justify-center
+                                    ">
+                                        <MessageCircleMore className="w-5 h-5 text-[#B05C31]" />
+
+                                    </div>
+
+                                    <div className="flex flex-col overflow-hidden">
+                                        <div className="flex items-center flex-wrap gap-x-2 gap-y-[2px]">
+                                            <span
+                                                className={`font-semibold truncate max-w-[230px] sm:max-w-[260px] ${
+                                                    unread ? "text-[#4A2F23]" : "text-[#6D4B36]"
+                                                }`}
+                                            >
+                                                {habit.title || "이름 없는 습관"}
+                                            </span>
+
                                             {habit.team && (
-                                                <span className="text-[12px] text-gray-400 truncate flex items-center gap-1">
-                                                  |
-                                                  {habit.team.members?.length > 1 && (
-                                                      <span>
-                                                          {habit.team.name}
-                                                      </span>
-                                                  )}
-                                                  <span className="text-gray-400">
-                                                    ({habit.team.members?.length ?? 0}명)
-                                                  </span>
-                                                </span>
+                                                <span className="text-[11px] truncate flex items-center gap-1">
+
+        {/* 구분용 점 */}
+
+                                                    {/* 태그는 무조건 */}
+                                                    <span className="flex items-center gap-1 px-1.5 py-[1px] rounded-md bg-[#F3E5D6] text-[#795A3A]">
+
+            {/* 사람 아이콘 — 항상 표시 */}
+                                                        <svg
+                                                            className="w-3 h-3"
+                                                            fill="none"
+                                                            stroke="#795A3A"
+                                                            strokeWidth="2"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                <path d="M17 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M7 21v-2a4 4 0 0 1 3-3.87" />
+                <circle cx="12" cy="7" r="4" />
+            </svg>
+
+                                                        {/* 팀명은 2명 이상일 때만 */}
+                                                        {habit.team.members?.length > 1 && (
+                                                            <span>
+                    {habit.team.name}
+                </span>
+                                                        )}
+
+                                                        {/* 명수는 항상 */}
+                                                        <span className="text-[#A88672]">
+                ({habit.team.members?.length ?? 0}명)
+            </span>
+
+        </span>
+
+    </span>
                                             )}
+
+
+
+
                                         </div>
 
-                                        {/* 마지막 메시지 */}
-                                        <span
-                                            className={`text-xs truncate max-w-[220px] sm:max-w-[300px] ${
-                                                unread ? "text-gray-800" : "text-gray-400"
-                                            }`}
-                                        >
-                                          {lastMsg
-                                              ? `${lastMsg.user?.nickname || "익명"}: ${lastMsg.content}`
-                                              : "아직 대화가 없습니다"}
-                                        </span>
+                                        <div className="flex items-center gap-1 text-xs">
+                                            <span
+                                                className={`truncate max-w-[220px] sm:max-w-[300px] ${
+                                                    unread ? "text-[#4A2F23]" : "text-[#9B7A63]"
+                                                }`}
+                                            >
+                                                {lastMsg
+                                                    ? `${lastMsg.user?.nickname}: ${lastMsg.content}`
+                                                    : "아직 대화가 없습니다"}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
 
-
-                                {/* 오른쪽 상단: NEW + 시간 */}
+                                {/* RIGHT: 시간 + NEW */}
                                 <div className="absolute top-3 right-4 flex flex-col items-end gap-1">
                                     {lastTime && (
                                         <span
                                             className={`text-[11px] whitespace-nowrap ${
-                                                unread ? "text-[#000000]/70 font-medium" : "text-[#000000]/40"
+                                                unread ? "text-[#6D4B36]" : "text-[#9B7A63]"
                                             }`}
                                         >
                                             {lastTime}
-                                          </span>
+                                        </span>
                                     )}
+
+                                    {/* NEW 뱃지 */}
                                     {unread && (
-                                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-sm
-                                          bg-[#F5A7A7]/60 text-[#000000]/80">
-                                          NEW
+                                        <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full
+                                            bg-[#FF8C8C] text-white shadow-md animate-pulse">
+                                            NEW
                                         </span>
                                     )}
                                 </div>
