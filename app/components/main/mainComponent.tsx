@@ -4,7 +4,6 @@ import * as PIXI from 'pixi.js';
 import {useCallback, useEffect, useRef, useState} from "react";
 import RabbitModal from "@/app/components/modal/rabbitModal";
 import {useRouter} from "next/navigation";
-import {submitCheckAction} from "@/app/habits/[habitId]/actions";
 
 type MainProps = {
     habit: {
@@ -49,12 +48,40 @@ const drawSky = (app: PIXI.Application) => {
         .fill('#c6e7f0')
 }
 
+const drawNightSky = (app: PIXI.Application) => {
+    const g = new Graphics()
+
+    g.rect(0, 0, app.screen.width, app.screen.height / 3).fill('#0b1d46');
+
+    for (let i = 0; i < 10; i++) {
+        const x = Math.random() * app.screen.width
+        const y = Math.random() * (app.screen.height / 3)
+        const size = Math.random() * 2 + 1
+        g.circle(x, y, size).fill('#ffffff')
+    }
+
+    return g
+}
+
 const createCloud = (x: number, y: number, scale: number) => {
     return new Graphics()
         .rect(x, y + 10 * scale, 30 * scale, 10 * scale)
         .rect(x + 10 * scale, y, 40 * scale, 20 * scale)
         .rect(x + 40 * scale, y + 10 * scale, 30 * scale, 10 * scale)
         .fill('#FFFFFF')
+}
+
+const createMoon = (app: PIXI.Application, scale = 1) => {
+    const g = new Graphics()
+
+    const moonX = app.screen.width - 130 * scale
+    const moonY = 50 * scale
+    const radius = 25 * scale
+
+    g.circle(moonX, moonY, radius).fill('#fff9c4')
+    g.circle(moonX + 8 * scale, moonY - 5 * scale, radius * 0.9).fill('#0b1d46')
+
+    return g
 }
 
 const drawGrassField = (app: PIXI.Application) => {
@@ -168,6 +195,12 @@ function MainComponent({ habit }: MainProps) {
         const isEscaped = habit.rabbitStatus === 'escaped'
 
         const initializePixi = async () => {
+            // kst 기준 낮인지 밤인지 체크
+            const now = new Date()
+            const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000)
+            const hour = kst.getUTCHours()
+            const isNight = (hour >= 18 || hour < 6)
+
             if (!canvasRef.current || appRef.current) return
 
             TextureSource.defaultOptions.resolution = 1
@@ -191,10 +224,15 @@ function MainComponent({ habit }: MainProps) {
                 canvasRef.current.appendChild(app.canvas as HTMLCanvasElement)
                 appRef.current = app
 
-                skyGraphics = drawSky(app)
-
-                cloud1Graphics = createCloud(app.screen.width * 0.1, 20 * PIXEL_SCALE, PIXEL_SCALE);
-                cloud2Graphics = createCloud(app.screen.width * 0.6, 50 * PIXEL_SCALE, PIXEL_SCALE);
+                if (isNight) {
+                    skyGraphics = drawNightSky(app)
+                    cloud1Graphics = createMoon(app, PIXEL_SCALE)
+                    cloud2Graphics = new Graphics()
+                } else {
+                    skyGraphics = drawSky(app)
+                    cloud1Graphics = createCloud(app.screen.width * 0.1, 20 * PIXEL_SCALE, PIXEL_SCALE)
+                    cloud2Graphics = createCloud(app.screen.width * 0.6, 50 * PIXEL_SCALE, PIXEL_SCALE)
+                }
 
                 grassFieldGraphics = drawGrassField(app)
 
@@ -364,6 +402,11 @@ function MainComponent({ habit }: MainProps) {
                 const handleResize = () => {
                     if (appRef.current && skyGraphics && cloud1Graphics && cloud2Graphics && grassFieldGraphics
                         && fenceGraphics && (bunnySprite || escapedHoleGraphics) && signpostGraphics && rabbitNameText) {
+                        const now = new Date()
+                        const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000)
+                        const hour = kst.getUTCHours()
+                        const isNight =  (hour >= 18 || hour < 6)
+
                         const currentApp = appRef.current
                         currentApp.resize()
 
@@ -374,9 +417,16 @@ function MainComponent({ habit }: MainProps) {
                         fenceGraphics.clear()
                         signpostGraphics.clear()
 
-                        skyGraphics = drawSky(currentApp)
-                        cloud1Graphics = createCloud(currentApp.screen.width * 0.1, 20 * PIXEL_SCALE, PIXEL_SCALE)
-                        cloud2Graphics = createCloud(currentApp.screen.width * 0.6, 50 * PIXEL_SCALE, PIXEL_SCALE)
+                        if (isNight) {
+                            skyGraphics = drawNightSky(currentApp)
+                            cloud1Graphics = createMoon(currentApp, PIXEL_SCALE)
+                            cloud2Graphics = new Graphics()
+                        } else {
+                            skyGraphics = drawSky(currentApp)
+                            cloud1Graphics = createCloud(currentApp.screen.width * 0.1, 20 * PIXEL_SCALE, PIXEL_SCALE)
+                            cloud2Graphics = createCloud(currentApp.screen.width * 0.6, 50 * PIXEL_SCALE, PIXEL_SCALE)
+                        }
+
                         grassFieldGraphics = drawGrassField(currentApp)
                         fenceGraphics = drawPixelFence(currentApp, PIXEL_SCALE)
 
@@ -481,7 +531,7 @@ function MainComponent({ habit }: MainProps) {
                     {/* 왼쪽 영역 */}
                     <div className="flex justify-center w-1/2">
                         <button
-                            className="bg-red-50 text-red-600 font-semibold py-2.5 px-8 sm:px-12 rounded-2xl border border-red-200 text-base sm:text-lg"
+                            className="bg-rose-50 text-rose-700 font-semibold py-2.5 px-8 sm:px-12 rounded-2xl border border-rose-300 text-base sm:text-lg"
                             onClick={() => {
                                 if (habit.channelId) {
                                     router.push(`/chat/${habit.channelId}`)
@@ -495,7 +545,7 @@ function MainComponent({ habit }: MainProps) {
                     {/* 오른쪽 영역 */}
                     <div className="flex justify-center w-1/2">
                         <button
-                            className="bg-amber-50 text-amber-600 font-semibold py-2.5 px-8 sm:px-12 rounded-2xl border border-amber-200 text-base sm:text-lg"
+                            className="bg-amber-50 text-amber-700 font-semibold py-2.5 px-8 sm:px-12 rounded-2xl border border-amber-300 text-base sm:text-lg"
                             onClick={() => router.push(`/habits/${habit.habitId}`)}
                         >
                             상세보기

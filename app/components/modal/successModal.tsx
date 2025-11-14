@@ -18,10 +18,10 @@ function SuccessModal({ open, onClose, title, description }: SuccessModalProps) 
                     {/* 성공을 나타내는 귀여운 아이콘 */}
                     <div className="text-4xl">🎉</div>
 
-                    <DialogTitle className="text-pink-500 text-xl font-bold text-center">
+                    <DialogTitle className="text-[#4A2F23] text-xl font-bold text-center">
                         {title}
                     </DialogTitle>
-                    <DialogDescription className="text-gray-700 text-md text-center whitespace-pre-line">
+                    <DialogDescription className="text-[#9B7A63] text-md text-center whitespace-pre-line">
                         {description}
                     </DialogDescription>
                 </DialogHeader>
@@ -29,7 +29,7 @@ function SuccessModal({ open, onClose, title, description }: SuccessModalProps) 
                 <DialogFooter className="flex justify-center mt-4">
                     <Button
                         onClick={onClose}
-                        className="bg-pink-400 text-white text-md py-5 font-semibold rounded-xl"
+                        className="bg-[#F1C9A5]  text-[#4A2F23] border border-[#E0B693] hover:bg-[#E4B88F] transition text-md py-5 font-semibold rounded-xl"
                     >
                         확인
                     </Button>
