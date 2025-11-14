@@ -38,8 +38,7 @@ export default async function ChatListPage() {
 
     return (
         <div>
-            <Header title={"내 채팅방"} backUrl={"/users/mypage"} />
-            <ChatListComponent habits={filteredHabits} />
+            <ChatListComponent habits={habits} />
         </div>
     );
 }
