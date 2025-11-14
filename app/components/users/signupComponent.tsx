@@ -126,13 +126,15 @@ function SignupComponent() {
                 }
             />
 
-            <div className="min-h-screen flex flex-col items-center px-6 py-12">
+            <div className="min-h-screen flex flex-col items-center px-4 py-4 bg-gradient-to-b from-[#FFF5E6] via-[#FAE8CA] to-[#F5D7B0]">
+                {/* 흰색 박스 */}
+                <div className="w-full max-w-md bg-[#FFF9F1] border-[#F0D4B2] rounded-lg shadow-md p-4">
                 <form action={action} className="flex flex-col gap-6 w-full max-w-md">
                     {/* 프로필 업로드 */}
-                    <div className="flex flex-col items-center mb-4">
+                    <div className="flex flex-col items-center mb-4 mt-4">
                         <label
                             htmlFor="imageURL"
-                            className="relative w-28 h-28 rounded-full border-1 border-gray-400 flex items-center justify-center cursor-pointer overflow-hidden"
+                            className="relative w-28 h-28 rounded-full border-1 border-[#E7C8A9] flex items-center justify-center cursor-pointer overflow-hidden"
                         >
                             <img
                                 src={formState.profilePreview}
@@ -151,8 +153,8 @@ function SignupComponent() {
                     </div>
 
                     {/* 아이디 */}
-                    <div className="flex flex-col">
-                        <label htmlFor="id" className="text-sm font-medium text-pink-500 mb-1">
+                    <div className="flex flex-col gap-1.5">
+                        <label htmlFor="id" className="text-sm font-medium text-amber-600 mb-1">
                             아이디
                         </label>
                         <div className="flex gap-2 items-stretch">
@@ -170,7 +172,7 @@ function SignupComponent() {
                                         isIdChecked: null,
                                     }))
                                 }
-                                className="flex-[3] border border-pink-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-300"
+                                className="flex-[3] border border-[#E0B693] rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#E0B693]"
                             />
                             <button
                                 type="button"
@@ -179,8 +181,8 @@ function SignupComponent() {
                                 className={`flex-[2] rounded-lg text-sm flex items-center justify-center transition
                                     ${
                                     !formState.id || formState.isIdChecked !== null
-                                        ? "bg-pink-300 text-white"
-                                        : "bg-pink-400 text-white"
+                                        ? "bg-[#FFF2E0]  text-[#4A2F23] border border-[#E7C8A9] cursor-not-allowed"
+                                        : "bg-[#F1C9A5] text-[#4A2F23] hover:bg-[#E4B88F] border border-[#E0B693]"
                                 }`}
                             >
                                 중복확인
@@ -196,8 +198,8 @@ function SignupComponent() {
                     </div>
 
                     {/* 닉네임 */}
-                    <div className="flex flex-col">
-                        <label htmlFor="nickname" className="text-sm font-medium text-pink-500 mb-1">
+                    <div className="flex flex-col gap-1.5">
+                        <label htmlFor="nickname" className="text-sm font-medium text-amber-600 mb-1">
                             닉네임
                         </label>
                         <div className="flex gap-2 items-stretch">
@@ -215,7 +217,7 @@ function SignupComponent() {
                                         isNicknameChecked: null,
                                     }))
                                 }
-                                className="flex-[3] border border-pink-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-300"
+                                className="flex-[3] border border-[#E0B693] rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#E0B693]"
                             />
                             <button
                                 type="button"
@@ -224,8 +226,8 @@ function SignupComponent() {
                                 className={`flex-[2] rounded-lg text-sm flex items-center justify-center transition
                                     ${
                                     !formState.nickname || formState.isNicknameChecked !== null
-                                        ? "bg-pink-300 text-white"
-                                        : "bg-pink-400 text-white"
+                                        ? "bg-[#FFF2E0]  text-[#4A2F23] border border-[#E7C8A9] cursor-not-allowed"
+                                        : "bg-[#F1C9A5] text-[#4A2F23] hover:bg-[#E4B88F] border border-[#E0B693]"
                                 }`}
                             >
                                 중복확인
@@ -241,8 +243,8 @@ function SignupComponent() {
                     </div>
 
                     {/* 비밀번호 */}
-                    <div className="flex flex-col gap-3">
-                        <label htmlFor="password" className="text-sm font-medium text-pink-500 mb-1">
+                    <div className="flex flex-col gap-1.5">
+                        <label htmlFor="password" className="text-sm font-medium text-amber-600 mb-1">
                             비밀번호
                         </label>
                         <input
@@ -262,7 +264,7 @@ function SignupComponent() {
                                             : null,
                                 }))
                             }
-                            className="border border-pink-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-300"
+                            className="border border-[#E0B693] rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#E0B693]"
                         />
                         <input
                             type="password"
@@ -270,7 +272,7 @@ function SignupComponent() {
                             value={formState.passwordConfirm}
                             onChange={handlePasswordConfirmChange}
                             required
-                            className="border border-pink-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-300"
+                            className="border border-[#E0B693] rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#E0B693]"
                         />
 
                         {formState.isPasswordMatched === true && (
@@ -293,13 +295,14 @@ function SignupComponent() {
                             formState.isIdChecked === true &&
                             formState.isNicknameChecked === true &&
                             formState.isPasswordMatched === true
-                                ? "bg-pink-400 text-white hover:bg-pink-500"
-                                : "bg-pink-300 text-white cursor-not-allowed"
+                                ? "bg-[#F1C9A5] text-[#4A2F23] hover:bg-[#E4B88F] border border-[#E0B693]"
+                                : "bg-[#FFF2E0]  text-[#4A2F23] border border-[#E7C8A9] cursor-not-allowed"
                         }`}
                     >
                         가입하기
                     </button>
                 </form>
+                </div>
             </div>
         </>
     )

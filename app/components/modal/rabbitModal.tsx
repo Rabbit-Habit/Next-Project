@@ -38,10 +38,10 @@ function RabbitStatusModal({ open, onClose, rabbitName, rabbitStatus, combo, hab
                         {/* 토끼 아이콘 사용 */}
                         <div className="text-4xl">🐰</div>
 
-                        <DialogTitle className="text-pink-500 text-xl font-bold text-center">
+                        <DialogTitle className="text-[#4A2F23] text-xl font-bold text-center">
                             토끼 상태 정보
                         </DialogTitle>
-                        <DialogDescription className="text-gray-700 text-md text-center whitespace-pre-line">
+                        <DialogDescription className="text-[#9B7A63] text-md text-center whitespace-pre-line">
                             <>
                                 <strong>이름:</strong> {rabbitName || '토끼'}<br />
                                 <strong>현재 콤보:</strong> {formattedCombo}일<br/>
@@ -58,7 +58,7 @@ function RabbitStatusModal({ open, onClose, rabbitName, rabbitStatus, combo, hab
                                 type="button"
                                 disabled={pending}
                                 onClick={() => setConfirmOpen(true)}
-                                className="w-full bg-pink-400 text-white text-md py-5 font-semibold rounded-xl"
+                                className="w-full bg-[#F1C9A5]  text-[#4A2F23] border border-[#E0B693] hover:bg-[#E4B88F] transition text-md py-5 font-semibold rounded-xl"
                             >
                                 토끼 밥주기
                             </Button>

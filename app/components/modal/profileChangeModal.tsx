@@ -57,11 +57,11 @@ function ProfileChangeModal({ open, onClose }: ProfileChangeProps) {
             <Sheet open={open} onOpenChange={onClose}>
                 <SheetContent side="bottom" className="rounded-t-2xl bg-white border overflow-y-auto animate-fade-in">
                     <SheetHeader className="flex flex-col items-center gap-4 pt-6">
-                        <div className="text-3xl text-pink-500">📷</div>
-                        <SheetTitle className="text-pink-500 text-xl font-bold text-center">
+                        <div className="text-3xl text-[#4A2F23]">📷</div>
+                        <SheetTitle className="text-[#4A2F23] text-xl font-bold text-center">
                             프로필 이미지 변경
                         </SheetTitle>
-                        <SheetDescription className="text-gray-700 text-md text-center">
+                        <SheetDescription className="text-[#9B7A63] text-md text-center">
                             사진 업로드 또는 다른 옵션을 선택하세요.
                         </SheetDescription>
                     </SheetHeader>
@@ -72,7 +72,7 @@ function ProfileChangeModal({ open, onClose }: ProfileChangeProps) {
                             <Button
                                 type="submit"
                                 variant="outline"
-                                className="border-pink-400 text-pink-400 text-md py-5 font-semibold rounded-xl w-full"
+                                className="border border-[#E0B693] bg-white/70 text-sm text-[#5C3B28] hover:bg-[#FFF2E0] transition text-md py-5 font-semibold rounded-xl w-full"
                             >
                                 기본 이미지로 변경
                             </Button>
@@ -95,7 +95,7 @@ function ProfileChangeModal({ open, onClose }: ProfileChangeProps) {
                             <label htmlFor="newProfileImage">
                                 <Button
                                     asChild
-                                    className="bg-pink-400 text-white text-md py-5 font-semibold rounded-xl w-full"
+                                    className="bg-[#F1C9A5]  text-[#4A2F23] border border-[#E0B693] hover:bg-[#E4B88F] transition text-md py-5 font-semibold rounded-xl w-full"
                                 >
                                     <span>사진 업로드</span>
                                 </Button>

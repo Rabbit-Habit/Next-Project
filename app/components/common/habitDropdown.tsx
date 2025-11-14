@@ -53,7 +53,7 @@ function HabitDropdown({ habits }: HabitDropdownProps) {
                                 <li
                                     key={habit.habitId}
                                     onClick={() => handleSelect(habit.habitId)}
-                                    className="px-4 py-3 hover:bg-pink-50 text-gray-700"
+                                    className="px-4 py-3 hover:bg-[#FFF9F1] text-gray-700"
                                 >
                                     {habit.title}
                                 </li>
@@ -65,10 +65,10 @@ function HabitDropdown({ habits }: HabitDropdownProps) {
                 {/* 오른쪽: 마이페이지 버튼 */}
                 <button
                     onClick={() => router.push("/users/mypage")}
-                    className="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center"
+                    className="w-10 h-10 rounded-full bg-[#FFF2E0] flex items-center justify-center"
                     aria-label="마이페이지"
                 >
-                    <User className="w-6 h-6 text-pink-500" />
+                    <User className="w-6 h-6 text-[#D07B4A]c" />
                 </button>
             </div>
         </header>

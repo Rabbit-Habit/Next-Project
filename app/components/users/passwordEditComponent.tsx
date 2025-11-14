@@ -152,79 +152,82 @@ function PasswordEditComponent({ isSocial }: PasswordEditProps) {
                     </>
                 }
             />
-            <div className="min-h-screen flex flex-col items-center px-6 py-4">
-                <form action={action} className="flex flex-col gap-6 w-full max-w-md">
-                    {/* 기존 비밀번호 */}
-                    <div className="flex flex-col">
-                        <label htmlFor="oldPassword" className="text-sm font-medium text-pink-500 mb-1">
-                            기존 비밀번호
-                        </label>
-                        <input
-                            id="oldPassword"
-                            type="password"
-                            name="oldPassword"
-                            placeholder="기존 비밀번호"
-                            required
-                            value={formState.oldPasswordConfirm}
-                            onChange={handleOldPasswordChange}
-                            className="border border-pink-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-300"
-                        />
-                    </div>
+            <div className="min-h-screen flex flex-col items-center px-4 py-4 bg-gradient-to-b from-[#FFF5E6] via-[#FAE8CA] to-[#F5D7B0]">
+                {/* 흰색 박스 */}
+                <div className="w-full max-w-md bg-[#FFF9F1] border-[#F0D4B2] rounded-lg shadow-md p-4">
+                    <form action={action} className="flex flex-col gap-6 w-full max-w-md">
+                        {/* 기존 비밀번호 */}
+                        <div className="flex flex-col gap-1.5">
+                            <label htmlFor="oldPassword" className="text-sm font-medium text-amber-600 mb-1">
+                                기존 비밀번호
+                            </label>
+                            <input
+                                id="oldPassword"
+                                type="password"
+                                name="oldPassword"
+                                placeholder="기존 비밀번호"
+                                required
+                                value={formState.oldPasswordConfirm}
+                                onChange={handleOldPasswordChange}
+                                className="border border-[#E0B693] rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#E0B693]"
+                            />
+                        </div>
 
-                    {/* 새 비밀번호 */}
-                    <div className="flex flex-col gap-3">
-                        <label htmlFor="newPassword" className="text-sm font-medium text-pink-500 mb-1">
-                            새 비밀번호
-                        </label>
-                        <input
-                            id="newPassword"
-                            type="password"
-                            name="newPassword"
-                            placeholder="새 비밀번호"
-                            required
-                            value={formState.newPassword}
-                            onChange={handleNewPasswordChange}
-                            className="border border-pink-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-300"
-                        />
-                        <input
-                            type="password"
-                            name="newPasswordConfirm"
-                            placeholder="새 비밀번호 확인"
-                            required
-                            value={formState.newPasswordConfirm}
-                            onChange={handleNewPasswordConfirmChange}
-                            className="border border-pink-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-300"
-                        />
+                        {/* 새 비밀번호 */}
+                        <div className="flex flex-col gap-1.5">
+                            <label htmlFor="newPassword" className="text-sm font-medium text-amber-600 mb-1">
+                                새 비밀번호
+                            </label>
+                            <input
+                                id="newPassword"
+                                type="password"
+                                name="newPassword"
+                                placeholder="새 비밀번호"
+                                required
+                                value={formState.newPassword}
+                                onChange={handleNewPasswordChange}
+                                className="border border-[#E0B693] rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#E0B693]"
+                            />
+                            <input
+                                type="password"
+                                name="newPasswordConfirm"
+                                placeholder="새 비밀번호 확인"
+                                required
+                                value={formState.newPasswordConfirm}
+                                onChange={handleNewPasswordConfirmChange}
+                                className="border border-[#E0B693] rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#E0B693]"
+                            />
 
-                        {formState.isNewPasswordMatched === true && (
-                            <span className="mt-1 text-sm text-blue-500">새 비밀번호가 일치합니다.</span>
-                        )}
-                        {formState.isNewPasswordMatched === false && (
-                            <span className="mt-1 text-sm text-red-500">새 비밀번호가 일치하지 않습니다.</span>
-                        )}
-                    </div>
+                            {formState.isNewPasswordMatched === true && (
+                                <span className="mt-1 text-sm text-blue-500">새 비밀번호가 일치합니다.</span>
+                            )}
+                            {formState.isNewPasswordMatched === false && (
+                                <span className="mt-1 text-sm text-red-500">새 비밀번호가 일치하지 않습니다.</span>
+                            )}
+                        </div>
 
-                    <button
-                        type="submit"
-                        disabled={
-                            !(
+                        <button
+                            type="submit"
+                            disabled={
+                                !(
+                                    formState.oldPasswordConfirm !== "" &&
+                                    formState.isNewPasswordMatched === true &&
+                                    formState.newPassword !== ""
+                                )
+                            }
+                            className={`font-semibold rounded-lg py-2 mt-2 transition
+                        ${
                                 formState.oldPasswordConfirm !== "" &&
                                 formState.isNewPasswordMatched === true &&
                                 formState.newPassword !== ""
-                            )
-                        }
-                        className={`font-semibold rounded-lg py-2 mt-2 transition
-                    ${
-                            formState.oldPasswordConfirm !== "" &&
-                            formState.isNewPasswordMatched === true &&
-                            formState.newPassword !== ""
-                                ? "bg-pink-400 text-white hover:bg-pink-500"
-                                : "bg-pink-300 text-white cursor-not-allowed"
-                        }`}
-                    >
-                        비밀번호 변경
-                    </button>
-                </form>
+                                    ? "bg-[#F1C9A5]  text-[#4A2F23] hover:bg-[#E4B88F] border border-[#E0B693]"
+                                    : "bg-[#FFF2E0] text-[#4A2F23] border border-[#E7C8A9] cursor-not-allowed"
+                            }`}
+                        >
+                            비밀번호 변경
+                        </button>
+                    </form>
+                </div>
             </div>
         </>
     )
