@@ -25,7 +25,7 @@ function Header({ title, backUrl }: HeaderProps) {
 
     return (
         <header
-            className="flex items-center justify-between px-4 border-b border-gray-200 bg-white"
+            className="flex items-center justify-between px-4 border-b border-gray-200 bg-white/70"
             style={{ height: "56px" }} // 고정 높이
         >
             {/* 왼쪽: 뒤로가기 버튼 */}
