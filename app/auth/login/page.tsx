@@ -171,7 +171,7 @@ function AuthLoginPage() {
                     <button
                         type="button"
                         onClick={handleKakaoLogin}
-                        className="w-full max-w-md text-[#4A2F23] bg-[#FEE500] border border-yellow-400 font-semibold rounded-lg flex items-center justify-center gap-2 py-3"
+                        className="w-full max-w-md text-[#4A2F23] bg-[#FEE500] font-semibold rounded-lg flex items-center justify-center gap-2 py-3"
                     >
                         <img
                             src="/icons/kakao_text_speech.png"

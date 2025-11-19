@@ -84,16 +84,22 @@ const createMoon = (app: PIXI.Application, scale = 1) => {
     return g
 }
 
-const drawGrassField = (app: PIXI.Application) => {
-    return new Graphics()
-        .rect(0, app.screen.height / 3, app.screen.width, app.screen.height / 3 * 2)
-        .fill('#97dd99')
+const drawGrassField = (app: PIXI.Application, isNight: boolean) => {
+    if (isNight) {
+        return new Graphics()
+            .rect(0, app.screen.height / 3, app.screen.width, app.screen.height / 3 * 2)
+            .fill('#6aa76a')
+    } else {
+        return new Graphics()
+            .rect(0, app.screen.height / 3, app.screen.width, app.screen.height / 3 * 2)
+            .fill('#97dd99')
+    }
 }
 
-const drawPixelFence = (app: PIXI.Application, scale: number) => {
+const drawPixelFence = (app: PIXI.Application, scale: number, isNight: boolean) => {
     const fence = new Graphics()
 
-    const fenceColor = '#b77d57'
+    const fenceColor = isNight ? '#966445' : '#b77d57'
     const fenceY = app.screen.height / 3 - (10 * scale)
 
     const postWidth = 10 * scale
@@ -234,9 +240,8 @@ function MainComponent({ habit }: MainProps) {
                     cloud2Graphics = createCloud(app.screen.width * 0.6, 50 * PIXEL_SCALE, PIXEL_SCALE)
                 }
 
-                grassFieldGraphics = drawGrassField(app)
-
-                fenceGraphics = drawPixelFence(app, PIXEL_SCALE)
+                grassFieldGraphics = drawGrassField(app, isNight)
+                fenceGraphics = drawPixelFence(app, PIXEL_SCALE, isNight)
 
                 const signpost = drawSignpost(app, habit.rabbitName, PIXEL_SCALE)
                 signpostGraphics = signpost.Graphics
@@ -405,7 +410,7 @@ function MainComponent({ habit }: MainProps) {
                         const now = new Date()
                         const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000)
                         const hour = kst.getUTCHours()
-                        const isNight =  (hour >= 18 || hour < 6)
+                        const isNight = (hour >= 18 || hour < 6)
 
                         const currentApp = appRef.current
                         currentApp.resize()
@@ -427,8 +432,8 @@ function MainComponent({ habit }: MainProps) {
                             cloud2Graphics = createCloud(currentApp.screen.width * 0.6, 50 * PIXEL_SCALE, PIXEL_SCALE)
                         }
 
-                        grassFieldGraphics = drawGrassField(currentApp)
-                        fenceGraphics = drawPixelFence(currentApp, PIXEL_SCALE)
+                        grassFieldGraphics = drawGrassField(app, isNight)
+                        fenceGraphics = drawPixelFence(currentApp, PIXEL_SCALE, isNight)
 
                         const signpost = drawSignpost(currentApp, habit.rabbitName, PIXEL_SCALE)
                         signpostGraphics = signpost.Graphics
