@@ -38,9 +38,11 @@ model ChatChannel {
   regDate   DateTime @default(now()) @map("reg_date")
 
   // 관계
-  messages ChatMessage[]
-  habit    Habit         @relation(fields: [habitId], references: [habitId])
-  chatRead ChatRead[]
+  messages  ChatMessage[]
+  chatRead  ChatRead[]
+
+  // 습관 삭제시 같이 삭제
+  habit     Habit    @relation(fields: [habitId], references: [habitId], onDelete: Cascade)
 
   @@map("tbl_chat_channels")
 }
@@ -52,8 +54,8 @@ model ChatMessage {
   content   String
   regDate   DateTime @default(now()) @map("reg_date")
 
-  // 관계
-  channel ChatChannel @relation(fields: [channelId], references: [channelId])
+  // 관계 (삭제시 Cascade 추가)
+  channel ChatChannel @relation(fields: [channelId], references: [channelId], onDelete: Cascade)
   user    User        @relation(fields: [userId], references: [userId])
 
   // 인덱스 추가 (channel_id + reg_date)
@@ -68,7 +70,7 @@ model ChatRead {
   lastReadAt DateTime @default(now()) @map("last_read_at")
 
   user    User        @relation(fields: [userId], references: [userId])
-  channel ChatChannel @relation(fields: [channelId], references: [channelId])
+  channel ChatChannel @relation(fields: [channelId], references: [channelId], onDelete: Cascade)
 
   @@unique([userId, channelId])
   @@map("tbl_chat_read")
@@ -105,12 +107,12 @@ model Habit {
   targetLat    Decimal?     @map("target_lat") @db.Decimal(9, 6)
   targetLng    Decimal?     @map("target_lng") @db.Decimal(9, 6)
 
-  team Team? @relation(fields: [teamId], references: [teamId])
+  //관계
+  team         Team?        @relation(fields: [teamId], references: [teamId])
+  chatChannel  ChatChannel?
 
-  chatChannel ChatChannel?
-
-  histories        HabitHistory[]
-  teamLogs         HabitTeamHistory[]
+  histories    HabitHistory[]
+  teamLogs     HabitTeamHistory[]
 
   @@index([userId])
   @@map("tbl_habit")
@@ -130,7 +132,7 @@ model HabitHistory {
 
   regDate DateTime @default(now()) @map("reg_date")
 
-  habit Habit @relation(fields: [habitId], references: [habitId])
+  habit Habit @relation(fields: [habitId], references: [habitId], onDelete: Cascade)
 
   // 같은 날에 같은 유저가 같은 습관을 2번 체크하지 못하게
   @@unique([habitId, userId, checkDate], name: "uq_habit_user_day")
@@ -147,38 +149,14 @@ model HabitTeamHistory {
   isCompleted   Boolean  @default(true) @map("is_completed")
   // userIds       Json?    @map("user_ids") // ["1","2","3"]
   regDate       DateTime @default(now()) @map("reg_date")
-  habit         Habit    @relation(fields: [habitId], references: [habitId])
+
+  habit         Habit    @relation(fields: [habitId], references: [habitId], onDelete: Cascade)
 
   // 팀 하루 1행만 존재
   @@unique([habitId, teamId, checkDate], name: "uq_team_habit_day")
   @@index([habitId, teamId, checkDate])
   @@map("tbl_habit_team_history")
 }
-
-// 팀 히스토리: 팀 목표 누적용
-// model TeamHabitHistory {
-//   teamHistoryId BigInt @id @default(autoincrement()) @map("team_history_id")
-//   habitId       BigInt @map("habit_id")
-//   teamId        BigInt @map("team_id")
-//
-//   // 팀 단위로 오늘 누계 집계할 때 쓸 '날짜'
-//   checkDate DateTime @map("check_date") @db.Date
-//
-//   // 팀 목표 채우기 위한 "한 번의 기여"를 의미 (true로만 관리)
-//   isCompleted Boolean @default(true) @map("is_completed")
-//
-//   // 팀원별 1일 1회 제한
-//   userId Int @map("user_id")
-//
-//   regDate DateTime @default(now()) @map("reg_date")
-//
-//   habit Habit @relation(fields: [habitId], references: [habitId])
-//
-//   // 팀원 1일 1회만 허용
-//   @@unique([habitId, teamId, userId, checkDate], name: "uq_team_habit_user_day")
-//   @@index([habitId, teamId, checkDate])
-//   @@map("tbl_team_habit_history")
-// }
 
 model TeamMember {
   teamMemberId BigInt   @id @default(autoincrement()) @map("team_member_id")

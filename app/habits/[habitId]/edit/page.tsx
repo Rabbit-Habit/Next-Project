@@ -3,73 +3,80 @@ import prisma from "@/lib/prisma";
 import HabitEditForm from "@/app/components/habits/habitEditForm";
 import {getServerSession} from "next-auth";
 import {authOptions} from "@/app/api/auth/[...nextauth]/route";
+import {notFound} from "next/navigation";
 
-function toBigint(id: string) {
+function toBigInt(id: string) {
     try { return BigInt(id) } catch { return null }
 }
 
 export default async function HabitEditPage(
     props: { params: Promise<{ habitId: string }> }
 ) {
+    const { habitId } = await props.params;
 
-    const { habitId } = await props.params
+    const session = await getServerSession(authOptions);
+    const userId = Number(session?.user.uid);
+    if (!userId) return notFound();
 
-    const session = await getServerSession(authOptions)
-    const userId = Number(session?.user.uid)
+    const hid = toBigInt(habitId);
+    if (!hid) return notFound();
 
-    const hid = toBigint(habitId)
-
-    if (!hid || !userId) {
-        return (
-            <div className="p-6">
-                <Header title="습관 수정" />
-                <p className="text-red-600 mt-4">잘못된 접근입니다.</p>
-            </div>
-        )
-    }
-
-    const habit = await prisma.habit.findFirst({
-        where: { habitId: hid, userId },
+    const habit = await prisma.habit.findUnique({
+        where: { habitId: hid },
         select: {
             habitId: true,
+            userId: true,
             title: true,
             rabbitName: true,
             goalDetail: true,
             goalCount: true,
             inviteCode: true,
-            targetLat: true,
-            targetLng: true,
-            isAttendance: true,
+            team: {
+                select: {
+                    teamId: true,
+                    name: true,
+                    members: {
+                        select: {
+                            userId: true,
+                            role: true,
+                        },
+                    },
+                },
+            },
         },
-    })
+    });
 
-    if (!habit) {
-        return (
-            <div className="p-6">
-                <Header title="습관 수정" />
-                <p className="text-red-600 mt-4">해당 습관을 찾을 수 없습니다.</p>
-            </div>
-        )
+    if (!habit) return notFound();
+
+    const memberCount = habit.team?.members.length ?? 1;
+    const isTeamHabit = memberCount > 1 || !!habit.inviteCode;
+
+    // 권한 (팀 습관이면 LEADER만, 아니면 작성자만)
+    let canEdit = false;
+    if (!isTeamHabit) {
+        canEdit = habit.userId === userId;
+    } else {
+        const me = habit.team?.members.find(
+            (m) => m.userId === userId && m.role === "LEADER"
+        );
+        canEdit = !!me;
     }
 
-    // 타입 에러 수정 중
-    // ✅ 클라이언트로 넘길 “직렬화 가능한” 형태로 변환
     const viewModel = {
-        habitId: habit.habitId.toString(),                          // bigint -> string
-        title: habit.title ?? null,
+        habitId: habit.habitId.toString(),
+        title: habit.title ?? "",
         rabbitName: habit.rabbitName,
-        goalDetail: habit.goalDetail ?? null,
-        goalCount: habit.goalCount ? Number(habit.goalCount) : null, // bigint -> number|null
-        inviteCode: habit.inviteCode ?? null,
-        targetLat: habit.targetLat ? Number(habit.targetLat) : null, // Decimal -> number|null
-        targetLng: habit.targetLng ? Number(habit.targetLng) : null, // Decimal -> number|null
-        isAttendance: !!habit.isAttendance,                          // boolean|null -> boolean
-    }
+        goalDetail: habit.goalDetail ?? "",
+        goalCount: habit.goalCount ? Number(habit.goalCount) : null,
+        teamName: habit.team?.name ?? "",
+        isTeamHabit,
+        canEdit,
+    };
 
     return (
         <div>
             <Header title="습관 수정" />
             <HabitEditForm habit={viewModel} />
         </div>
-    )
+    );
 }
