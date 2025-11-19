@@ -20,7 +20,7 @@ function MypageComponent({ id, nickname, imageUrl }: MypageProps) {
         { label: "팀 관리", icon: <Users className="w-5 h-5 text-amber-600" /> },
         { label: "해빗 관리", icon: <ListChecks className="w-5 h-5 text-amber-600" />, onClick: () => {router.push("/habits")} },
         { label: "채팅 목록", icon: <MessageSquare className="w-5 h-5 text-amber-600" />, onClick: () => { router.push("/chat") } },
-        { label: "알람 설정", icon: <Bell className="w-5 h-5 text-amber-600" /> },
+        { label: "알람 설정", icon: <Bell className="w-5 h-5 text-amber-600" />, onClick: () => { router.push("/notifications") } },
         { label: "비밀번호 변경", icon: <Lock className="w-5 h-5 text-amber-600" />, onClick: () => {router.push("/users/mypage/password")}},
         { label: "계정 탈퇴", icon: <Trash2 className="w-5 h-5 text-amber-600" />, onClick: () => {router.push("/users/mypage/delete")}},
         { label: "로그아웃", icon: <LogOut className="w-5 h-5 text-amber-600" />, onClick: () => {setIsLogoutModalOpen(true)} },

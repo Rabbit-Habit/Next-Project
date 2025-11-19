@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-// 무한스크롤 로딩
+// 무한 스크롤 로딩
 export async function loadMoreHabitsAction(cursor: number | null) {
     const session = await getServerSession(authOptions);
     const uid = Number(session?.user?.uid);
