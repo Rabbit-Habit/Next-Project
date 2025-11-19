@@ -69,15 +69,15 @@ function PasswordEditComponent({ isSocial }: PasswordEditProps) {
     const handleNewPasswordConfirmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value
         setFormState((prev) => ({ ...prev, newPasswordConfirm: value }))
+        useEffect(() => {
+            const handler = setTimeout(() => {
+                setDebouncedNewPasswordConfirm(formState.newPasswordConfirm)
+            }, 500)
+
+            return () => clearTimeout(handler)
+        }, [formState.newPasswordConfirm])
+
     }
-
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedNewPasswordConfirm(formState.newPasswordConfirm)
-        }, 500)
-
-        return () => clearTimeout(handler)
-    }, [formState.newPasswordConfirm])
 
     useEffect(() => {
         if (debouncedNewPasswordConfirm === "") {

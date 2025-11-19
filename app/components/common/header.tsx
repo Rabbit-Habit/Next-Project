@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { IoArrowBackOutline } from "react-icons/io5";
+import { IoArrowBackOutline, IoHomeOutline } from "react-icons/io5";
 
 interface HeaderProps {
     title: string;
@@ -19,6 +19,10 @@ function Header({ title, backUrl }: HeaderProps) {
         }
     }
 
+    const goHome = () => {
+        router.push("/main")
+    }
+
     return (
         <header
             className="flex items-center justify-between px-4 border-b border-gray-200 bg-white"
@@ -30,7 +34,7 @@ function Header({ title, backUrl }: HeaderProps) {
                 className="p-2 rounded-full hover:bg-gray-100 transition"
                 aria-label="뒤로가기"
             >
-                <IoArrowBackOutline size={22} className="text-gray-700" />
+                <IoArrowBackOutline size={24} className="text-gray-700" />
             </button>
 
             {/* 가운데: 타이틀 */}
@@ -39,7 +43,13 @@ function Header({ title, backUrl }: HeaderProps) {
             </h1>
 
             {/* 오른쪽: 공간 맞추기 (좌우 균형 유지용) */}
-            <div className="w-9" />
+            <button
+                onClick={goHome}
+                className="p-2 rounded-full hover:bg-gray-100 transition"
+                aria-label="홈"
+            >
+                <IoHomeOutline size={24} className="text-gray-800" />
+            </button>
         </header>
     )
 }
