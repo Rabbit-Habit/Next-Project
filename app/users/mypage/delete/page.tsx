@@ -15,7 +15,7 @@ async function DeletePage() {
     const user = await prisma.user.findUnique({
         where: { userId: userId },
         select: {
-            password: true,
+            nickname: true,
         },
     })
 
@@ -23,7 +23,7 @@ async function DeletePage() {
         <div>
             <div>
                 <Header title="회원 탈퇴" backUrl={"/users/mypage"}/>
-                <DeleteComponent password={user!.password}/>
+                <DeleteComponent nickname={user!.nickname}/>
             </div>
         </div>
     )

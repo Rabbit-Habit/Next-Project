@@ -48,7 +48,7 @@ export async function ChangePasswordAction(formData: FormData): Promise<EditResu
         return {
             uid: -1,
             error: err.message || "알 수 없는 오류가 발생했습니다.",
-        };
+        }
     }
 }
 

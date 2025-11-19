@@ -5,6 +5,8 @@ import React, { useActionState, useEffect } from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import FailModal from "@/app/components/modal/failModal";
+import SuccessModal from "@/app/components/modal/successModal";
+import { motion } from "framer-motion";
 
 const initState: SignupResult = {
     result: 0,
@@ -45,8 +47,11 @@ function SignupComponent() {
 
     const [state, action, isPending] = useActionState(signupClientAction, initState)
 
-    // 모달 상태 관리
-    const [isModalOpen, setIsModalOpen] = useState(false)
+    // 실패 모달 상태 관리
+    const [isFailModalOpen, setIsFailModalOpen] = useState(false)
+
+    // 성공 모달 상태 관리
+    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
 
     // 폼 데이터 상태 관리
     const [formState, setFormState] = useState<FormState>(initFormState)
@@ -101,21 +106,30 @@ function SignupComponent() {
 
     useEffect(() => {
         if (state.result > 0) {
-            router.push("/auth/login")
+            setIsSuccessModalOpen(true)
         } else if (state.error) {
-            setIsModalOpen(true)
+            setIsFailModalOpen(true)
         }
     }, [state, router])
+
+    useEffect(() => {
+        if (isSuccessModalOpen) {
+            const timer = setTimeout(() => {
+                router.push("/auth/login")
+            }, 2000)
+            return () => clearTimeout(timer)
+        }
+    }, [isSuccessModalOpen, router])
 
     return (
         <>
             {/* 회원가입 실패 모달 */}
             <FailModal
-                open={isModalOpen}
+                open={isFailModalOpen}
                 onClose={() => {
                     setDebouncedConfirm("")
                     setFormState(initFormState)
-                    setIsModalOpen(false)
+                    setIsFailModalOpen(false)
                 }}
                 title="회원가입 실패"
                 description={
@@ -125,6 +139,22 @@ function SignupComponent() {
                     </>
                 }
             />
+
+            {/* 회원가입 성공 모달 */}
+            {isSuccessModalOpen && (
+                <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                    className="fixed inset-0 flex items-center justify-center bg-black/40 z-50"
+                >
+                    <div className="bg-white border border-[#F0D4B2] p-12 rounded-xl shadow-xl text-center">
+                        <div className="text-4xl mb-2">🎉</div>
+                        <h2 className="text-xl font-bold text-[#4A2F23]">회원가입 성공!</h2>
+                        <p className="text-[#9B7A63] mt-2">가입을 축하드립니다.<br/> 곧 로그인 페이지로 이동합니다.</p>
+                    </div>
+                </motion.div>
+            )}
 
             <div className="min-h-screen flex flex-col items-center px-4 py-4 bg-gradient-to-b from-[#FFF5E6] via-[#FAE8CA] to-[#F5D7B0]">
                 {/* 흰색 박스 */}
