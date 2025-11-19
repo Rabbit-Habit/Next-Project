@@ -33,9 +33,10 @@ model User {
 
 // 채팅
 model ChatChannel {
-  channelId Int      @id @default(autoincrement()) @map("channel_id")
-  habitId   BigInt   @unique @map("habit_id")
-  regDate   DateTime @default(now()) @map("reg_date")
+  channelId     Int       @id @default(autoincrement()) @map("channel_id")
+  habitId       BigInt    @unique @map("habit_id")
+  regDate       DateTime  @default(now()) @map("reg_date")
+  lastMessageAt DateTime? @map("last_message_at")
 
   // 관계
   messages ChatMessage[]
@@ -109,8 +110,8 @@ model Habit {
 
   chatChannel ChatChannel?
 
-  histories        HabitHistory[]
-  teamLogs         HabitTeamHistory[]
+  histories HabitHistory[]
+  teamLogs  HabitTeamHistory[]
 
   @@index([userId])
   @@map("tbl_habit")

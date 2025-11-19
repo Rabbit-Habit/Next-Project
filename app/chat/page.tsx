@@ -2,43 +2,56 @@ import prisma from "@/lib/prisma";
 import ChatListComponent from "@/app/components/chat/chatListComponent";
 import {getServerSession} from "next-auth";
 import {authOptions} from "@/app/api/auth/[...nextauth]/route";
-import Header from "@/app/components/common/header";
+
 export default async function ChatListPage() {
+
 
     // 로그인 uid 가져오기
     const session = await getServerSession(authOptions)
     const uid = Number(session?.user.uid)
     if (!uid) return <div className="p-4">로그인이 필요합니다.</div>;
 
+    const TAKE = 10;
+
+
     // 습관 목록 + 채팅방 + 최근 메시지 불러오기
-    const habits = await prisma.habit.findMany({
+    const channels = await prisma.chatChannel.findMany({
         where: {
-            team: {
-                members: {
-                    some: {
-                        userId: Number(uid ?? 0),
-                    },
+            habit: {
+                team: {
+                    members: { some: { userId: uid } },
                 },
             },
         },
         include: {
-            team: { include: { members: true } },
-            chatChannel: {
+            habit: {
                 include: {
-                    messages: {
-                        orderBy: {regDate: "desc"},
-                        take: 1,
-                        include: { user: true },
-                    },
-                    chatRead: true,
+                    team: { include: { members: true } },
                 },
             },
+            messages: {
+                orderBy: { regDate: "desc" },
+                take: 1,
+                include: { user: true },
+            },
+            chatRead: true,
         },
+        orderBy: [
+            { lastMessageAt: "desc" },
+            { channelId: "asc" }
+        ],
+        take: TAKE,
     });
+
+    const nextCursor =
+        channels.length > 0 ? channels[channels.length - 1].channelId : null;
 
     return (
         <div>
-            <ChatListComponent habits={habits} />
+            <ChatListComponent
+                initialChannels={channels}
+                initialCursor={nextCursor}
+            />
         </div>
     );
 }

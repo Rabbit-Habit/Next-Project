@@ -308,7 +308,7 @@ export default function ChatClientComponent({
                 {/* 위쪽 로딩 스피너 */}
                 {isLoadingMore && (
                     <div className="flex justify-center items-center py-2 sticky top-0 z-10 bg-gradient-to-b from-gray-50/95 to-transparent">
-                        <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                        <div className="animate-spin h-5 w-5 border-2 border-yellow-500 border-t-transparent rounded-full"></div>
                     </div>
                 )}
 
