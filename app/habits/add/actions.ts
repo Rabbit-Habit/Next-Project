@@ -93,6 +93,7 @@ export async function createPersonalHabit(input: z.infer<typeof personalHabitSch
             await tx.chatChannel.create({
                 data: {
                     habitId: habit.habitId,
+                    lastMessageAt: new Date(0),
                     regDate: now,
                 },
             });

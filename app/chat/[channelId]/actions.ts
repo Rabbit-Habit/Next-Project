@@ -27,6 +27,13 @@ export async function sendMessageAction(formData: FormData): Promise<{ ok: boole
         include: { user: true }, // 유저 정보 같이 가져오기
     });
 
+    // 마지막 시간 업데이트
+    await prisma.chatChannel.update({
+        where: { channelId },
+        data: { lastMessageAt: new Date() }
+    })
+
+
     return { ok: true, message };
 }
 
