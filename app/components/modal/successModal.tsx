@@ -21,8 +21,10 @@ function SuccessModal({ open, onClose, title, description }: SuccessModalProps) 
                     <DialogTitle className="text-[#4A2F23] text-xl font-bold text-center">
                         {title}
                     </DialogTitle>
-                    <DialogDescription className="text-[#9B7A63] text-md text-center whitespace-pre-line">
-                        {description}
+                    <DialogDescription asChild>
+                        <div className="text-[#9B7A63] text-md text-center whitespace-pre-line">
+                            {description}
+                        </div>
                     </DialogDescription>
                 </DialogHeader>
 

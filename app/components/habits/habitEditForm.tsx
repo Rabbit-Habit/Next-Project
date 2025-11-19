@@ -1,95 +1,172 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
-    deleteHabitAction,
     updateHabitAction,
+    deleteHabitAction,
+    type UpdateHabitInput,
 } from "@/app/habits/[habitId]/edit/actions";
 import FailModal from "@/app/components/modal/failModal";
 import ConfirmModal from "@/app/components/modal/confirmModal";
+import SuccessModal from "@/app/components/modal/successModal";
 
-// ✅ 서버에서 이미 직렬화된 형태로 받도록 타입 단순화
 type HabitEditable = {
-    habitId: string; // bigint -> string
-    title: string | null;
+    habitId: string;
+    title: string;
     rabbitName: string;
-    goalDetail: string | null;
-    goalCount: number | null; // bigint -> number|null
-    inviteCode: string | null;
-    targetLat: number | null; // Decimal -> number|null
-    targetLng: number | null; // Decimal -> number|null
-    isAttendance: boolean; // boolean|null -> boolean
+    goalDetail: string;
+    goalCount: number | null;
+    teamName: string;
+    isTeamHabit: boolean;
+    canEdit: boolean;
 };
 
+const commonInputBase =
+    "w-full px-3 py-2 rounded-2xl border border-[#F0D4B2]/80 text-sm sm:text-sm outline-none";
+const editableInput =
+    "bg-white/90 border-[#F0D4B2] focus:ring-2 focus:ring-[#F1C9A5] focus:border-transparent";
+const readonlyInput =
+    "bg-[#F3E5D0] border-transparent text-[#9B7A63] cursor-not-allowed";
+
 export default function HabitEditForm({ habit }: { habit: HabitEditable }) {
+    const router = useRouter();
     const [pending, startTransition] = useTransition();
-    const [title, setTitle] = useState(habit.title ?? "");
+
+    const [title, setTitle] = useState(habit.title);
     const [rabbitName, setRabbitName] = useState(habit.rabbitName);
-    const [goalDetail, setGoalDetail] = useState(habit.goalDetail ?? "");
+    const [goalDetail, setGoalDetail] = useState(habit.goalDetail);
     const [goalCount, setGoalCount] = useState(
-        habit.goalCount ? String(habit.goalCount) : ""
+        habit.goalCount != null ? String(habit.goalCount) : ""
     );
-    const [targetLat, setTargetLat] = useState(
-        habit.targetLat?.toString() ?? ""
-    );
-    const [targetLng, setTargetLng] = useState(
-        habit.targetLng?.toString() ?? ""
-    );
-    const [isAttendance, setIsAttendance] = useState(!!habit.isAttendance);
+    const [teamName, setTeamName] = useState(habit.teamName);
 
-    const [okMsg, setOkMsg] = useState<string | null>(null);
-    const [errMsg, setErrMsg] = useState<string | null>(null);
-
-    const [openDelete, setOpenDelete] = useState(false);
+    // 모달 상태들
     const [openFail, setOpenFail] = useState(false);
+    const [errMsg, setErrMsg] = useState<string | null>(null);
+    const [openDelete, setOpenDelete] = useState(false);
+    const [openSuccess, setOpenSuccess] = useState(false);
+
+    const { isTeamHabit, canEdit } = habit;
 
     const handleSave = () => {
-        setOkMsg(null);
-        setErrMsg(null);
+        if (!canEdit || !rabbitName.trim()) return;
+
+        const input: UpdateHabitInput = {
+            habitId: habit.habitId,
+            title: title.trim(),
+            rabbitName: rabbitName.trim(),
+            goalDetail: goalDetail.trim(),
+            goalCount:
+                isTeamHabit && goalCount.trim()
+                    ? Number.parseInt(goalCount.trim(), 10)
+                    : null,
+            teamName: isTeamHabit ? teamName : undefined,
+        };
+
         startTransition(async () => {
-            const res = await updateHabitAction({
-                habitId: habit.habitId.toString(),
-                title: title.trim() || null,
-                rabbitName: rabbitName.trim(),
-                goalDetail: goalDetail.trim() || null,
-                goalCount: goalCount ? Number(goalCount) : null,
-                targetLat: targetLat ? Number(targetLat) : null,
-                targetLng: targetLng ? Number(targetLng) : null,
-                isAttendance,
-            });
-            if (res.ok) setOkMsg("저장되었습니다.");
-            else {
-                setErrMsg(res.error || "저장 중 오류가 발생했습니다.");
+            const res = await updateHabitAction(input);
+            if (!res.ok) {
+                setErrMsg(res.message ?? "문제가 발생했어요.");
                 setOpenFail(true);
+            } else {
+                setOpenSuccess(true);
             }
         });
     };
 
     const handleDelete = () => {
-        setOpenDelete(false);
-        setOkMsg(null);
-        setErrMsg(null);
+        if (!canEdit) return;
+
         startTransition(async () => {
-            const res = await deleteHabitAction(habit.habitId.toString());
-            if (res.ok) {
-                // 삭제 후 목록으로
-                window.location.href = "/habits";
-            } else {
-                setErrMsg(res.error || "삭제 중 오류가 발생했습니다.");
+            const res = await deleteHabitAction(habit.habitId);
+            if (!res.ok) {
+                setErrMsg(res.message ?? "삭제 중 문제가 발생했어요.");
                 setOpenFail(true);
+            } else {
+                router.push("/habits");
             }
         });
     };
 
+    const saveDisabled = pending || !rabbitName.trim() || !canEdit;
+
+    // ✅ 팀 습관 + 권한 없으면 폼 대신 안내 카드
+    if (isTeamHabit && !canEdit) {
+        return (
+            <div
+                className=" w-full min-h-[calc(100vh-80px)]
+                            bg-gradient-to-b from-[#FFF5E6] via-[#FAE8CA] to-[#F5D7B0]
+                            flex justify-center items-start
+                            px-4 py-8
+                          "
+            >
+                <div
+                    className="
+                                mt-3 w-full max-w-md mx-auto
+                                rounded-3xl border border-[#F0D4B2]
+                                bg-gradient-to-b from-[#FFF9F1] to-[#F7E4CC]
+                                px-6 py-6 space-y-2
+                              "
+                >
+                    <p className="text-sm font-semibold text-[#4A2F23]">
+                        이 팀의 리더만 습관 정보를 수정할 수 있어요.
+                    </p>
+                    <p className="text-xs text-[#9B7A63]">
+                        팀장에게 부탁해서 수정해 달라고 해 보세요 🐰
+                    </p>
+                    <div className="flex gap-3 mt-4">
+                        <button
+                            onClick={() => router.back()}
+                            className="
+                                        flex-1 py-2 text-sm font-semibold rounded-xl
+                                        bg-[#F1C9A5]/30 text-[#4A2F23]
+                                        border border-[#E0B693]/60
+                                        shadow-sm
+                                        hover:bg-[#E4B88F]
+                                        transition
+                                      "
+                        >
+                            <span>⬅️</span> 돌아가기
+                        </button>
+                        <button
+                            onClick={() => router.push(`/chat/${habit.habitId}`)}
+                            className="
+                                        flex-1 py-2 text-sm font-semibold rounded-xl
+                                        bg-[#F1C9A5] text-[#4A2F23]
+                                        border border-[#E0B693]
+                                        shadow-sm
+                                        hover:bg-[#FAD3D3]
+                                        transition
+                                      "
+                        >
+                            <span>💬</span> 채팅방으로 이동
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div
             className="
-                w-full min-h-[calc(100vh-80px)]
-                bg-gradient-to-b from-[#FFF5E6] via-[#FAE8CA] to-[#F5D7B0]
-                flex justify-center items-start
-                px-4 py-8
-            "
+                        w-full min-h-[calc(100vh-80px)]
+                        bg-gradient-to-b from-[#FFF5E6] via-[#FAE8CA] to-[#F5D7B0]
+                        flex justify-center items-start
+                        px-4 py-8
+                      "
         >
+            <SuccessModal
+                open={openSuccess}
+                onClose={() => {
+                    setOpenSuccess(false);
+                    router.push(`/habits/${habit.habitId}`); // 저장 후 이동
+                }}
+                title="저장 완료!"
+                description="습관 정보가 성공적으로 수정되었어요 🐰✨"
+            />
+
             {/* 실패 모달 */}
             <FailModal
                 open={openFail}
@@ -116,11 +193,11 @@ export default function HabitEditForm({ habit }: { habit: HabitEditable }) {
             {/* 에딧 카드 래퍼 */}
             <div
                 className="
-          mt-4 w-full max-w-md mx-auto
-          rounded-3xl border border-[#F0D4B2]
-          bg-gradient-to-b from-[#FFF9F1] to-[#F7E4CC]
-          shadow-md px-6 py-6 space-y-6
-        "
+                          mt-4 w-full max-w-md mx-auto
+                          rounded-3xl border border-[#F0D4B2]
+                          bg-gradient-to-b from-[#FFF9F1] to-[#F7E4CC]
+                          shadow-md px-6 py-6 space-y-6
+                        "
             >
                 {/* 타이틀 */}
                 <div className="text-center space-y-1">
@@ -130,7 +207,22 @@ export default function HabitEditForm({ habit }: { habit: HabitEditable }) {
                 </div>
 
                 {/* 폼 필드들 */}
-                <div className="space-y-4 text-sm">
+                <div className="space-y-4 rounded-2xl bg-[#FFF7EC] px-4 py-4 border border-[#F0D4B2]/60">
+                    {/* 팀 이름 (팀 습관일 때만 노출) */}
+                    {isTeamHabit && (
+                        <div>
+                            <label className="block mb-1 text-xs font-semibold text-[#5C3B28]">
+                                팀 이름
+                            </label>
+                            <input
+                                value={teamName}
+                                onChange={(e) => setTeamName(e.target.value)}
+                                className={`${commonInputBase} ${editableInput}`}
+                                placeholder="예) 아침독서 5인팀 📚"
+                            />
+                        </div>
+                    )}
+
                     <div>
                         <label className="block mb-1 text-xs font-semibold text-[#5C3B28]">
                             제목
@@ -138,11 +230,7 @@ export default function HabitEditForm({ habit }: { habit: HabitEditable }) {
                         <input
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            className="
-                w-full border border-[#F0D4B2]/80 rounded-2xl px-3 py-2
-                text-sm bg-[#FFFDF8] text-[#4A2F23]
-                focus:outline-none focus:ring-2 focus:ring-[#F1C9A5] focus:border-transparent
-              "
+                            className={`${commonInputBase} ${editableInput}`}
                             placeholder="예) 물 2L 마시기"
                         />
                     </div>
@@ -154,59 +242,57 @@ export default function HabitEditForm({ habit }: { habit: HabitEditable }) {
                         <input
                             value={rabbitName}
                             onChange={(e) => setRabbitName(e.target.value)}
-                            className="
-                w-full border border-[#F0D4B2]/80 rounded-2xl px-3 py-2
-                text-sm bg-[#FFFDF8] text-[#4A2F23]
-                focus:outline-none focus:ring-2 focus:ring-[#F1C9A5] focus:border-transparent
-              "
+                            className={`${commonInputBase} ${editableInput}`}
                             placeholder="예) 토벅이"
                         />
                     </div>
 
                     <div>
                         <label className="block mb-1 text-xs font-semibold text-[#5C3B28]">
-                            목표 상세 (선택)
+                            목표 상세
                         </label>
-                        <input
+                        <textarea
                             value={goalDetail}
                             onChange={(e) => setGoalDetail(e.target.value)}
-                            className="
-                w-full border border-[#F0D4B2]/80 rounded-2xl px-3 py-2
-                text-sm bg-[#FFFDF8] text-[#4A2F23]
-                focus:outline-none focus:ring-2 focus:ring-[#F1C9A5] focus:border-transparent
-              "
-                            placeholder="예) 오전 500ml / 오후 500ml / 저녁 1L"
+                            className={`
+                                        ${commonInputBase} ${editableInput}
+                                        min-h-[70px]    // 기본 약 3줄
+                                        max-h-[200px]   // 너무 커지지 않도록 제한(optional)
+                                        resize-none     // 사용자가 크기 조절 못하게 (optional)
+                                        overflow-auto   // 내용 많아지면 스크롤
+                                        leading-5
+                                    `}
+                            placeholder="언제, 어떻게 등 목표에 대해 자세히 기록해보세요."
                         />
                     </div>
 
-                    <div>
-                        <label className="block mb-1 text-xs font-semibold text-[#5C3B28]">
-                            목표 횟수 (선택)
-                        </label>
-                        <input
-                            type="number"
-                            min={1}
-                            value={goalCount}
-                            onChange={(e) => setGoalCount(e.target.value)}
-                            className="
-                w-full border border-[#F0D4B2]/80 rounded-2xl px-3 py-2
-                text-sm bg-[#FFFDF8] text-[#4A2F23]
-                focus:outline-none focus:ring-2 focus:ring-[#F1C9A5] focus:border-transparent
-              "
-                            placeholder="예) 3"
-                        />
-                    </div>
+                    {/* 목표 횟수: 팀 습관일 때만 생성 */}
+                    {isTeamHabit && (
+                        <div>
+                            <label className="block mb-1 text-xs font-semibold text-[#5C3B28]">
+                                목표 횟수 (선택)
+                            </label>
+                            <input
+                                type="number"
+                                min={1}
+                                value={goalCount}
+                                onChange={(e) => setGoalCount(e.target.value)}
+                                className={`${commonInputBase} ${editableInput}`}
+                                placeholder="예) 3"
+                            />
+                        </div>
+                    )}
                 </div>
 
                 {/* 버튼들 */}
-                <div className="flex gap-2 pt-1">
+                <div className="flex gap-2">
                     <button
                         onClick={handleSave}
-                        disabled={pending || !rabbitName.trim()}
+                        disabled={saveDisabled}
                         className={`
-              flex-1 py-3 rounded-2xl font-semibold border border-[#E0B693]/60
+              flex-1 py-2 rounded-2xl font-semibold border border-[#E0B693]/60
               ${
-                            pending || !rabbitName.trim()
+                            saveDisabled
                                 ? "bg-[#F3DEC6] text-[#B39A82] cursor-not-allowed"
                                 : "bg-[#F1C9A5] text-[#4A2F23] hover:bg-[#E4B88F]"
                         }
@@ -218,10 +304,10 @@ export default function HabitEditForm({ habit }: { habit: HabitEditable }) {
 
                     <button
                         type="button"
-                        onClick={() => setOpenDelete(true)}
-                        disabled={pending}
+                        onClick={() => canEdit && setOpenDelete(true)}
+                        disabled={pending || !canEdit}
                         className="
-              px-4 py-3 rounded-2xl font-semibold border border-[#F3B4B4]
+              px-4 rounded-2xl font-semibold border border-[#F3B4B4]
               text-[#C0392B] bg-[#FDECEC] hover:bg-[#FAD3D3]
               disabled:opacity-60 disabled:cursor-not-allowed text-sm
             "
@@ -229,10 +315,6 @@ export default function HabitEditForm({ habit }: { habit: HabitEditable }) {
                         삭제
                     </button>
                 </div>
-
-                {okMsg && (
-                    <p className="text-xs text-green-700 text-center">{okMsg}</p>
-                )}
             </div>
         </div>
     );

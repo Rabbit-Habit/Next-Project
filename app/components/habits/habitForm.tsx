@@ -15,6 +15,13 @@ import { Button } from "@/components/ui/button";
 // 폼 모드: 개인 생성 / 팀 생성 / 초대코드 참여
 type Mode = "personal" | "team_create" | "team_join";
 
+const commonInputBase =
+    "w-full px-3 py-2 rounded-2xl border border-[#F0D4B2]/80 text-sm sm:text-sm outline-none";
+const editableInput =
+    "bg-white/90 border-[#F0D4B2] focus:ring-2 focus:ring-[#F1C9A5] focus:border-transparent";
+const readonlyInput =
+    "bg-[#F3E5D0] border-transparent text-[#9B7A63] cursor-not-allowed";
+
 export default function HabitForm() {
     const [mode, setMode] = useState<Mode>("personal");
     const [pending, startTransition] = useTransition();
@@ -278,11 +285,7 @@ export default function HabitForm() {
                                 <input
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
-                                    className="
-                                        w-full border border-[#F0D4B2]/80 rounded-2xl px-3 py-2
-                                        text-sm bg-[#FFFDF8] text-[#4A2F23]
-                                        focus:outline-none focus:ring-2 focus:ring-[#F1C9A5] focus:border-transparent
-                                    "
+                                    className={`${commonInputBase} ${editableInput}`}
                                     placeholder="예) 물 2L 마시기 💧"
                                     autoFocus
                                 />
@@ -295,11 +298,7 @@ export default function HabitForm() {
                                 <input
                                     value={rabbitName}
                                     onChange={(e) => setRabbitName(e.target.value)}
-                                    className="
-                                        w-full border border-[#F0D4B2]/80 rounded-2xl px-3 py-2
-                                        text-sm bg-[#FFFDF8] text-[#4A2F23]
-                                        focus:outline-none focus:ring-2 focus:ring-[#F1C9A5] focus:border-transparent
-                                    "
+                                    className={`${commonInputBase} ${editableInput}`}
                                     placeholder="예) 토벅이 🐇"
                                 />
                             </div>
@@ -311,15 +310,17 @@ export default function HabitForm() {
                                 <p className="text-[10px] text-[#9B7A63] mt-0.5">
                                     언제, 어떻게 등 목표에 대해 자세히 기록해보세요.
                                 </p>
-                                <input
+                                <textarea
                                     value={goalDetail}
                                     onChange={(e) => setGoalDetail(e.target.value)}
-                                    className="
-                                        w-full border border-[#F0D4B2]/80 rounded-2xl px-3 py-2
-                                        text-sm bg-[#FFFDF8] text-[#4A2F23]
-                                        focus:outline-none focus:ring-2 focus:ring-[#F1C9A5] focus:border-transparent
-                                    "
-                                    placeholder="예) 오전 500ml / 오후 500ml / 저녁 1L"
+                                    className={`
+                                    ${commonInputBase} ${editableInput}
+                                        min-h-[70px]    // 기본 약 3줄
+                                        max-h-[200px]   // 너무 커지지 않도록 제한(optional)
+                                        resize-none     // 사용자가 크기 조절 못하게 (optional)
+                                        overflow-auto   // 내용 많아지면 스크롤
+                                        leading-5
+                                    `}
                                 />
                             </div>
                         </div>
@@ -340,11 +341,7 @@ export default function HabitForm() {
                                     min={1}
                                     value={goalCount}
                                     onChange={(e) => setGoalCount(e.target.value)}
-                                    className="
-                                        w-full border border-[#F0D4B2]/80 rounded-2xl px-3 py-2
-                                        text-sm bg-[#FFFDF8] text-[#4A2F23]
-                                        focus:outline-none focus:ring-2 focus:ring-[#F1C9A5] focus:border-transparent
-                                    "
+                                    className={`${commonInputBase} ${editableInput}`}
                                     placeholder="예) 3"
                                 />
                             </div>
@@ -356,11 +353,7 @@ export default function HabitForm() {
                                 <input
                                     value={teamName}
                                     onChange={(e) => setTeamName(e.target.value)}
-                                    className="
-                                        w-full border border-[#F0D4B2]/80 rounded-2xl px-3 py-2
-                                        text-sm bg-[#FFFDF8] text-[#4A2F23]
-                                        focus:outline-none focus:ring-2 focus:ring-[#F1C9A5] focus:border-transparent
-                                    "
+                                    className={`${commonInputBase} ${editableInput}`}
                                     placeholder="예) 아침독서 5인팀 📚"
                                 />
                             </div>
@@ -372,7 +365,7 @@ export default function HabitForm() {
                                     onChange={(e) => setAutoInvite(e.target.checked)}
                                     className="rounded border-[#E0B58C] text-[#D07B4A] focus:ring-[#F1C9A5]"
                                 />
-                                <span>생성 시 초대코드도 같이 만들기</span>
+                                <span>생성 시 초대코드 같이 만들기</span>
                             </label>
 
                             {generatedInvite && (
@@ -404,12 +397,7 @@ export default function HabitForm() {
                             <input
                                 value={inviteCode}
                                 onChange={(e) => setInviteCode(e.target.value)}
-                                className="
-                                    w-full border border-[#F0D4B2]/80 rounded-2xl px-3 py-2
-                                    text-sm bg-[#FFFDF8] text-[#4A2F23]
-                                    focus:outline-none focus:ring-2 focus:ring-[#F1C9A5] focus:border-transparent
-                                    tracking-widest font-mono
-                                "
+                                className={`${commonInputBase} ${editableInput} tracking-widest font-mono`}
                                 placeholder="예) RH-ABCD-1234"
                             />
                             <p className="text-[10px] text-[#9B7A63]">
