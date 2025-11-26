@@ -17,7 +17,7 @@ datasource db {
 
 model User {
   userId      Int           @id @default(autoincrement()) @map("user_id")
-  id          String        @unique
+  id          String?       @unique
   password    String?
   isSocial    Boolean       @default(false) @map("is_social")
   imageUrl    String?       @map("image_url")
@@ -39,11 +39,11 @@ model ChatChannel {
   lastMessageAt DateTime? @map("last_message_at")
 
   // 관계
-  messages  ChatMessage[]
-  chatRead  ChatRead[]
+  messages ChatMessage[]
+  chatRead ChatRead[]
 
   // 습관 삭제시 같이 삭제
-  habit     Habit    @relation(fields: [habitId], references: [habitId], onDelete: Cascade)
+  habit Habit @relation(fields: [habitId], references: [habitId], onDelete: Cascade)
 
   @@map("tbl_chat_channels")
 }
@@ -109,11 +109,11 @@ model Habit {
   targetLng    Decimal?     @map("target_lng") @db.Decimal(9, 6)
 
   //관계
-  team         Team?        @relation(fields: [teamId], references: [teamId])
-  chatChannel  ChatChannel?
+  team        Team?        @relation(fields: [teamId], references: [teamId])
+  chatChannel ChatChannel?
 
-  histories    HabitHistory[]
-  teamLogs     HabitTeamHistory[]
+  histories HabitHistory[]
+  teamLogs  HabitTeamHistory[]
 
   @@index([userId])
   @@map("tbl_habit")
@@ -151,7 +151,7 @@ model HabitTeamHistory {
   // userIds       Json?    @map("user_ids") // ["1","2","3"]
   regDate       DateTime @default(now()) @map("reg_date")
 
-  habit         Habit    @relation(fields: [habitId], references: [habitId], onDelete: Cascade)
+  habit Habit @relation(fields: [habitId], references: [habitId], onDelete: Cascade)
 
   // 팀 하루 1행만 존재
   @@unique([habitId, teamId, checkDate], name: "uq_team_habit_day")

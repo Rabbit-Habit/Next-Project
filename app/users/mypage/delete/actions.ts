@@ -41,44 +41,50 @@ export async function UserDeleteAction(formData: FormData): Promise<DeleteResult
 
             // 2. MEMBER 처리
             if (memberTeamIds.length > 0) {
+                // 본인이 속한 team member 행 삭제
                 await tx.teamMember.deleteMany({
                     where: { userId, teamId: { in: memberTeamIds } },
                 })
 
+                // 해당 팀들에 속한 habitIds 조회
                 const memberHabits = await tx.habit.findMany({
                     where: { teamId: { in: memberTeamIds } },
                     select: { habitId: true },
                 })
                 const habitIds = memberHabits.map((h) => h.habitId)
 
+                // 개인 habit history 삭제(본인)
                 await tx.habitHistory.deleteMany({
                     where: { habitId: { in: habitIds }, userId },
                 })
 
-                // 채팅 삭제
+                // chat read 제거 (사용자의 읽음 레코드)
                 for (const habitId of habitIds) {
                     const channel = await tx.chatChannel.findUnique({
                         where: { habitId },
                         select: { channelId: true },
                     })
+
                     if (channel) {
                         await tx.chatRead.deleteMany({ where: { channelId: channel.channelId, userId } });
-                        await tx.chatMessage.deleteMany({ where: { channelId: channel.channelId, userId } });
                     }
                 }
             }
 
             // 3. LEADER 처리
             if (leaderTeamIds.length > 0) {
+                // 해당 팀들에 속한 habitIds 조회
                 const leaderHabits = await tx.habit.findMany({
                     where: { teamId: { in: leaderTeamIds } },
                     select: { habitId: true },
                 })
                 const habitIds = leaderHabits.map((h) => h.habitId)
 
+                // 모든 팀원 habit history, 팀 habit team history 삭제
                 await tx.habitHistory.deleteMany({ where: { habitId: { in: habitIds } } })
                 await tx.habitTeamHistory.deleteMany({ where: { habitId: { in: habitIds } } })
 
+                // chat read, chat message, chat channel 전부 삭제
                 for (const habitId of habitIds) {
                     const channel = await tx.chatChannel.findUnique({
                         where: { habitId },
@@ -91,14 +97,24 @@ export async function UserDeleteAction(formData: FormData): Promise<DeleteResult
                     }
                 }
 
+                // team member, habit, team 전부 삭제
                 await tx.teamMember.deleteMany({ where: { teamId: { in: leaderTeamIds } } })
                 await tx.habit.deleteMany({ where: { teamId: { in: leaderTeamIds } } })
                 await tx.team.deleteMany({ where: { teamId: { in: leaderTeamIds } } })
             }
 
-            // 4. 사용자 삭제
-            await tx.user.delete({ where: { userId } })
-        });
+            // 4) 사용자 개인정보 마스킹(soft delete)
+            await tx.user.update({
+                where: { userId },
+                data: {
+                    isDeleted: true,
+                    id: null,
+                    password: null,
+                    imageUrl: null,
+                    nickname: `탈퇴 사용자${userId}`,
+                }
+            })
+        })
 
         return { uid: user.userId, error: "" }
     } catch (err: any) {

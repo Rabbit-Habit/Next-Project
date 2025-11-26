@@ -328,5 +328,6 @@ export async function finalizeTodayIfMissed(habitIdStr: string) {
 export async function submitCheckAction(habitIdStr: string) {
     const res = await checkHabit(habitIdStr);
     revalidatePath(`/habits/${habitIdStr}`);
+    revalidatePath(`/main/${habitIdStr}`);
     return res;
 }

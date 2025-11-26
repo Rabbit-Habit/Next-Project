@@ -66,6 +66,10 @@ async function verifyUser(id: string, password: string) : Promise<number> {
         throw new Error("카카오 로그인을 이용해주세요.")
     }
 
+    if (user.isDeleted) {
+        throw new Error("로그인 불가능한 사용자입니다.")
+    }
+
     const isMatch = await bcrypt.compare(password, user.password)
     if (!isMatch) {
         throw new Error("비밀번호가 올바르지 않습니다.");
