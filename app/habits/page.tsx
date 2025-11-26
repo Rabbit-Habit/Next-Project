@@ -1,13 +1,7 @@
 import prisma from "@/lib/prisma";
-import {cookies} from "next/headers";
-import HabitsList from "@/app/components/habits/habitsList.server";
+import HabitsList from "@/app/components/habits/habitsList.client";
 import {getServerSession} from "next-auth";
 import {authOptions} from "@/app/api/auth/[...nextauth]/route";
-
-// function toOptionalBigInt(v?: string) {
-//     if (!v) return undefined;
-//     try { return BigInt(v); } catch { return undefined; }
-// }
 
 export default async function HabitsPage() {
     const session = await getServerSession(authOptions)
@@ -15,30 +9,25 @@ export default async function HabitsPage() {
 
     if (!userId) return <div> 로그인이 필요합니다. </div>
 
-    const teamIds = await prisma.teamMember.findMany({
-        where: { userId },
-        select: { teamId: true },
-    }).then(rows => rows.map(r => r.teamId))
+    // const teamIds = await prisma.teamMember.findMany({
+    //     where: { userId },
+    //     select: { teamId: true },
+    // }).then(rows => rows.map(r => r.teamId))
 
     const items = await prisma.habit.findMany({
-        where: {
-            OR: [
-                { userId },                  // 내가 만든 개인/팀 습관
-                { teamId: { in: teamIds } }, // 내가 멤버로 속한 팀 습관
-            ],
-        },
+        take: 4,
+        orderBy: { habitId: "desc" },
         select: {
             habitId: true,
             title: true,
             rabbitName: true,
             rabbitStatus: true,
             goalDetail: true,
+            inviteCode: true,
             regDate: true,
-            team: {select: {name: true}},
+            team: { select: { name: true } },
         },
-        orderBy: [{regDate: "desc"}, {habitId: "desc"}],
-        take: 100,
-    })
+    });
 
     // DTO 직렬화 (BigInt/Date 안전)
     const mapped = items.map((i) => ({
@@ -49,8 +38,9 @@ export default async function HabitsPage() {
         goalDetail: i.goalDetail ?? null,
         teamName: i.team?.name ?? null,
         regDate: i.regDate ? i.regDate.toISOString() : null,
+        isTeamHabit: !!i.inviteCode, // 초대 코드 유무로 팀습관 판별
     }));
 
-    return <HabitsList items={mapped} />
+    return <HabitsList initialItems={mapped} />
 }
 

@@ -140,7 +140,7 @@ export default function HabitForm() {
     return (
         <div
             className="
-                w-full min-h-[calc(100vh-80px)]
+                w-full min-h-screen
                 bg-gradient-to-b from-[#FFF5E6] via-[#FAE8CA] to-[#F5D7B0]
                 flex justify-center items-start
                 px-4 py-8
@@ -193,7 +193,7 @@ export default function HabitForm() {
                     description="저장 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요."
                 />
 
-                {/* 카드 래퍼 (그대로 유지) */}
+                {/* 카드 래퍼  */}
                 <form
                     onSubmit={onSubmit}
                     className="
@@ -215,13 +215,13 @@ export default function HabitForm() {
                         </p>
                     </div>
 
-                    {/* 탭 영역 (베이지 3탭) */}
+                    {/* 탭 영역  */}
                     <div
                         className="
                             grid grid-cols-3
                             rounded-2xl overflow-hidden
                             border border-[#F0D4B2]
-                            bg-[#F9EBDA]
+                            bg-[#FBE4CF]
                             text-[11px] sm:text-xs
                         "
                     >
@@ -233,7 +233,7 @@ export default function HabitForm() {
                                 py-3 px-2 text-center relative isolate transition-all duration-300
                                 ${
                                 mode === "personal"
-                                    ? "bg-[#FBEAD4] text-[#D07B4A] font-semibold shadow-inner cursor-default"
+                                    ? "bg-[#FFF9F1] text-[#4A2F23]] shadow-inner cursor-default"
                                     : "text-[#8C6A54] hover:bg-[#F7DFC7] hover:text-[#4A2F23]"
                             }
                             `}
@@ -250,7 +250,7 @@ export default function HabitForm() {
                                 border-x border-[#E7C8A9]
                                 ${
                                 mode === "team_create"
-                                    ? "bg-[#FBEAD4] text-[#D07B4A] font-semibold shadow-inner cursor-default"
+                                    ? "bg-[#FFF9F1] text-[#4A2F23] shadow-inner cursor-default"
                                     : "text-[#8C6A54] hover:bg-[#F7DFC7] hover:text-[#4A2F23]"
                             }
                             `}
@@ -266,7 +266,7 @@ export default function HabitForm() {
                                 py-3 px-2 text-center relative isolate transition-all duration-300
                                 ${
                                 mode === "team_join"
-                                    ? "bg-[#FBEAD4] text-[#D07B4A] font-semibold shadow-inner cursor-default"
+                                    ? "bg-[#FFF9F1] text-[#4A2F23] shadow-inner cursor-default"
                                     : "text-[#8C6A54] hover:bg-[#F7DFC7] hover:text-[#4A2F23]"
                             }
                             `}
