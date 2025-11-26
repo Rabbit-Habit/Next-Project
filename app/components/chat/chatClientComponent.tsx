@@ -5,7 +5,7 @@ import {deleteMessageAction, loadOlderMessagesAction, sendMessageAction} from "@
 import {useRouter} from "next/navigation";
 import {IoArrowBackOutline} from "react-icons/io5";
 import {useSession} from "next-auth/react";
-import {Send, SendHorizonal} from "lucide-react";
+import {Send} from "lucide-react";
 
 export default function ChatClientComponent({
     channelId,
