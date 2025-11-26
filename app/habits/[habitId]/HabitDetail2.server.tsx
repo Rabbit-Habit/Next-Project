@@ -5,6 +5,7 @@ import { submitCheckAction } from "@/app/habits/[habitId]/actions";
 import { Suspense } from "react";
 import MonthlySectionComponent from "@/app/components/stat/MonthlySectionComponent";
 import AccumulatedStatComponent from "@/app/components/stat/AccumulatedStatComponent";
+import {redirect} from "next/navigation";
 
 export default function HabitDetail2({
                                          habit,
@@ -56,9 +57,20 @@ export default function HabitDetail2({
 
     async function checkAction(formData: FormData) {
         "use server";
+
         const hid = String(formData.get("habitId") ?? "");
         if (!hid) return;
-        await submitCheckAction(hid);
+
+        const result = await submitCheckAction(formData);
+
+        // 🔸 여기서 result를 보고 분기하면 됨
+        if (!result.ok && result.error === "ALREADY_DONE") {
+            // 이미 체크한 경우
+            redirect(`/habits/${hid}?already=1`);
+        }
+
+        // 첫 체크 성공 or 기타 케이스
+        redirect(`/habits/${hid}?checked=1`);
     }
 
     return (
@@ -71,7 +83,7 @@ export default function HabitDetail2({
                     <div className="flex flex-col items-center">
                         {/*
                           실제로 이미지를 쓸 때 예시:
-                          <div className="w-24 h-24 rounded-full bg-[#FBEAD4] flex items-center justify-center overflow-hidden border border-[#E7C8A9] mb-2">
+                          <div className="w-24 h-24 rounded-full bg-[#FBEAD4] flex items-center justify-center overflow-hidden border-[#E7C8A9] mb-2">
                             <img
                               src={habit.rabbitImageUrl}
                               alt={habit.rabbitName}

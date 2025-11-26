@@ -95,7 +95,7 @@ export default function HabitEditForm({ habit }: { habit: HabitEditable }) {
     if (isTeamHabit && !canEdit) {
         return (
             <div
-                className=" w-full min-h-[calc(100vh-80px)]
+                className=" w-full min-h-screen
                             bg-gradient-to-b from-[#FFF5E6] via-[#FAE8CA] to-[#F5D7B0]
                             flex justify-center items-start
                             px-4 py-8
@@ -151,7 +151,7 @@ export default function HabitEditForm({ habit }: { habit: HabitEditable }) {
     return (
         <div
             className="
-                        w-full min-h-[calc(100vh-80px)]
+                        w-full min-h-screen
                         bg-gradient-to-b from-[#FFF5E6] via-[#FAE8CA] to-[#F5D7B0]
                         flex justify-center items-start
                         px-4 py-8

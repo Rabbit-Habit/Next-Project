@@ -142,6 +142,20 @@ export async function checkHabit(habitIdStr: string) {
     const teamId = habit.teamId ?? null;
     const goal   = habit.goalCount ?? BigInt(1);
 
+    const already = await prisma.habitHistory.findUnique({
+        where: {
+            uq_habit_user_day: {
+                habitId,
+                userId,
+                checkDate: today,
+            }
+        }
+    })
+
+    if (already && already.isCompleted) {
+        return { ok: false, error: "ALREADY_DONE" as const }
+    }
+
     // 트랜잭션: 개인 히스토리 upsert + (teamId 있으면) 팀 히스토리 upsert
     const { teamCount } = await prisma.$transaction(async (tx) => {
         // 1) 개인 1일 1회 기록
@@ -324,10 +338,33 @@ export async function finalizeTodayIfMissed(habitIdStr: string) {
 //     return res;
 // }
 
+export type HabitCheckState = {
+    ok: boolean;
+    error?: string
+    completed?: boolean
+    count?: number
+    goal?: number
+}
+
 // 제출 2
-export async function submitCheckAction(habitIdStr: string) {
-    const res = await checkHabit(habitIdStr);
-    revalidatePath(`/habits/${habitIdStr}`);
-    revalidatePath(`/main/${habitIdStr}`);
-    return res;
+// export async function submitCheckAction(habitIdStr: string) {
+//     const res = await checkHabit(habitIdStr);
+//     revalidatePath(`/habits/${habitIdStr}`);
+//     revalidatePath(`/main/${habitIdStr}`);
+//     return res;
+// }
+
+// 제출 3
+export async function submitCheckAction(formData: FormData) {
+    const id = formData.get("habitId") as string;
+    const res = await checkHabit(id);
+
+    if (!res.ok && res.error === "ALREADY_DONE") {
+        return { ok: false, reason: "ALREADY_DONE" };
+    }
+
+    revalidatePath(`/habits/${id}`);
+    revalidatePath(`/main/${id}`);
+
+    return { ok: true };
 }

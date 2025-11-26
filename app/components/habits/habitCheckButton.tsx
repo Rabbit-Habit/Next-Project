@@ -1,34 +1,45 @@
-"use client"
+"use client";
 
-import {useRef, useState, useTransition} from "react";
+import { useRef, useState, useTransition } from "react";
 import ConfirmModal from "@/app/components/modal/confirmModal";
+import FailModal from "@/app/components/modal/failModal";
 
 type Props = {
     habitId: string;
-    action: (formData: FormData) => Promise<any>;
+    action: (formData: FormData) => Promise<{
+        ok: boolean;
+        reason?: string;
+    }>;
 };
 
 export default function HabitCheckButton({ habitId, action }: Props) {
-    const [open, setOpen] = useState(false);
+    const [openConfirm, setOpenConfirm] = useState(false);
+    const [openFail, setOpenFail] = useState(false);
     const [pending, startTransition] = useTransition();
     const formRef = useRef<HTMLFormElement>(null);
 
-    // 모달 확인 클릭 → form.submit()
     const handleConfirm = () => {
-        setOpen(false);
-        startTransition(() => {
-            formRef.current?.requestSubmit();
+        setOpenConfirm(false);
+
+        const formData = new FormData(formRef.current!);
+
+        startTransition(async () => {
+            const res = await action(formData);
+
+            if (!res.ok && res.reason === "ALREADY_DONE") {
+                setOpenFail(true);
+            }
         });
     };
 
     return (
         <div className="flex items-center gap-2">
-            <form ref={formRef} action={action}>
+            <form ref={formRef}>
                 <input type="hidden" name="habitId" value={habitId} />
                 <button
                     type="button"
                     disabled={pending}
-                    onClick={() => setOpen(true)}
+                    onClick={() => setOpenConfirm(true)}
                     className="px-3 py-2 rounded-xl border bg-amber-50 text-amber-700 hover:bg-amber-100 disabled:opacity-50"
                 >
                     습관 체크
@@ -37,11 +48,19 @@ export default function HabitCheckButton({ habitId, action }: Props) {
 
             {/* 확인 모달 */}
             <ConfirmModal
-                open={open}
+                open={openConfirm}
                 onConfirm={handleConfirm}
-                onCancel={() => setOpen(false)}
-                title={"습관 체크할까요?"}
-                description={"진짜로?"}
+                onCancel={() => setOpenConfirm(false)}
+                title="습관 체크할까요?"
+                description="진짜로?"
+            />
+
+            {/* 실패 모달 */}
+            <FailModal
+                open={openFail}
+                onClose={() => setOpenFail(false)}
+                title="이미 체크했어요"
+                description="오늘은 이미 이 습관을 체크했어요 🐰"
             />
         </div>
     );
