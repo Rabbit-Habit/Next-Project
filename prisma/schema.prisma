@@ -16,17 +16,18 @@ datasource db {
 }
 
 model User {
-  userId      Int           @id @default(autoincrement()) @map("user_id")
-  id          String?       @unique
-  password    String?
-  isSocial    Boolean       @default(false) @map("is_social")
-  imageUrl    String?       @map("image_url")
-  nickname    String        @unique
-  isDeleted   Boolean       @default(false) @map("is_deleted")
-  regDate     DateTime      @default(now()) @map("reg_date")
-  modDate     DateTime      @updatedAt @map("mod_date")
-  chatMessage ChatMessage[]
-  chatRead    ChatRead[]
+  userId       Int            @id @default(autoincrement()) @map("user_id")
+  id           String?        @unique
+  password     String?
+  isSocial     Boolean        @default(false) @map("is_social")
+  imageUrl     String?        @map("image_url")
+  nickname     String         @unique
+  isDeleted    Boolean        @default(false) @map("is_deleted")
+  regDate      DateTime       @default(now()) @map("reg_date")
+  modDate      DateTime       @updatedAt @map("mod_date")
+  chatMessage  ChatMessage[]
+  chatRead     ChatRead[]
+  Notification Notification[]
 
   @@map("tbl_user")
 }
@@ -112,8 +113,9 @@ model Habit {
   team        Team?        @relation(fields: [teamId], references: [teamId])
   chatChannel ChatChannel?
 
-  histories HabitHistory[]
-  teamLogs  HabitTeamHistory[]
+  histories    HabitHistory[]
+  teamLogs     HabitTeamHistory[]
+  Notification Notification[]
 
   @@index([userId])
   @@map("tbl_habit")
@@ -169,6 +171,28 @@ model TeamMember {
 
   @@unique([teamId, userId], name: "teamId_userId")
   @@map("tbl_team_member")
+}
+
+model Notification {
+  notificationId BigInt @id @default(autoincrement()) @map("notification_id")
+
+  userId  Int    @map("user_id")
+  habitId BigInt @map("habit_id")
+
+  sendTime   String   @map("send_time") // "HH:MM"
+  daysOfWeek String[] @map("days_of_week") // ["MON","TUE"] or ["EVERY"]
+  memo       String?  @map("memo")
+
+  isActive Boolean @default(true) @map("is_active")
+
+  regDate DateTime @default(now()) @map("reg_date")
+  modDate DateTime @updatedAt @map("mod_date")
+
+  // 관계
+  user  User  @relation(fields: [userId], references: [userId])
+  habit Habit @relation(fields: [habitId], references: [habitId], onDelete: Cascade)
+
+  @@map("tbl_notification")
 }
 
 enum RabbitStatus {
