@@ -378,7 +378,11 @@ export default function ChatClientComponent({
                             >
                                 {!isMine && (
                                     <img
-                                        src={m.user?.imageUrl ?? "/icons/basic_profile.jpg"}
+                                        src={
+                                            m.user?.isDeleted
+                                                ? "/icons/deleted_profile.jpg"
+                                                : (m.user?.imageUrl ?? "/icons/basic_profile.jpg")
+                                        }
                                         alt="프로필"
                                         className="w-8 h-8 rounded-full border"
                                     />

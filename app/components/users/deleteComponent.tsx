@@ -2,10 +2,10 @@
 
 import FailModal from "@/app/components/modal/failModal";
 import React, {startTransition, useActionState, useEffect, useState} from "react";
-import { useRouter } from "next/navigation";
 import ConfirmModal from "@/app/components/modal/confirmModal";
 import SuccessModal from "@/app/components/modal/successModal";
 import {UserDeleteAction} from "@/app/users/mypage/delete/actions";
+import {signOut} from "next-auth/react";
 
 interface DeleteProps {
     nickname: string | null;
@@ -25,8 +25,6 @@ const UserDeleteClientAction = async (
 
 function DeleteComponent({ nickname }: DeleteProps) {
     const [state, action, isPending] = useActionState(UserDeleteClientAction, initState)
-
-    const router = useRouter()
 
     // 실패 모달 상태 관리
     const [isFailModalOpen, setIsFailModalOpen] = useState(false)
@@ -100,7 +98,10 @@ function DeleteComponent({ nickname }: DeleteProps) {
                 open={isSuccessModalOpen}
                 onClose={() => {
                     setIsSuccessModalOpen(false)
-                    router.push("/auth/login")
+                    signOut({
+                        redirect: true,
+                        callbackUrl: "/auth/login"
+                    }).then()
                 }}
                 title="회원 탈퇴 성공"
                 description={
