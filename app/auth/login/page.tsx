@@ -53,7 +53,7 @@ function AuthLoginPage() {
             {/* 로그인 실패 모달 */}
             <FailModal
                 open={isModalOpen}
-                onClose={() => {
+                onOpenChange={() => {
                     setId("")
                     setPassword("")
                     setIsModalOpen(false)

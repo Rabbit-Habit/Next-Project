@@ -96,7 +96,7 @@ export default function NotificationsAddComponent({
             {/* 실패 모달 */}
             <FailModal
                 open={openFail}
-                onClose={() => setOpenFail(false)}
+                onOpenChange={() => setOpenFail(false)}
                 title="실패"
                 description={errMsg ?? "문제가 발생했어요."}
             />

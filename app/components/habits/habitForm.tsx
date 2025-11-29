@@ -188,7 +188,7 @@ export default function HabitForm() {
                 {/*실패 모달*/}
                 <FailModal
                     open={openFail}
-                    onClose={() => setOpenFail(false)}
+                    onOpenChange={() => setOpenFail(false)}
                     title="실패"
                     description="저장 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요."
                 />

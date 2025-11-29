@@ -167,10 +167,13 @@ export async function checkHabit(habitIdStr: string) {
 
         // 2) 팀 1일 1회 기록 (개인 습관도 teamId 보유하면 함께 기록)
         if (teamId) {
-            await tx.habitTeamHistory.upsert({
-                where: { uq_team_habit_day: { habitId, teamId, checkDate: today } },
-                update: {},
-                create: { habitId, teamId, checkDate: today, isCompleted: true },
+            // await tx.habitTeamHistory.upsert({
+            //     where: { uq_team_habit_day: { habitId, teamId, checkDate: today } },
+            //     update: {},
+            //     create: { habitId, teamId, checkDate: today, isCompleted: true },
+            // });
+            await tx.habitTeamHistory.create({
+                data: { habitId, teamId, checkDate: today, isCompleted: true }
             });
         }
 
@@ -207,82 +210,6 @@ export async function checkHabit(habitIdStr: string) {
         return { ok: true, completed: true };
     }
 }
-
-
-// // 개인 습관 체크
-// export async function checkPersonalHabit(habitIdStr: string) {
-//     const userId = await requireUserId();
-//     const habitId = BigInt(habitIdStr);
-//     const today = kstDateOnly(new Date());
-//
-//     // 개인 기록(1일 1회)
-//     await prisma.habitHistory.upsert({
-//         where: { uq_habit_user_day: { habitId, userId, checkDate: today } },
-//         update: {},
-//         create: { habitId, userId, checkDate: today, isCompleted: true },
-//     });
-//
-//     // 성공 즉시 alive + 콤보 증가
-//     await bumpComboAlive(habitId);
-//
-//     revalidatePath(`/habits/${habitIdStr}`);
-//     return { ok: true };
-// }
-//
-// // 팀 습관 체크
-// export async function checkTeamHabit(habitIdStr: string) {
-//     const userId = await requireUserId();
-//     const habitId = BigInt(habitIdStr);
-//     const today = kstDateOnly(new Date());
-//
-//     const habit = await prisma.habit.findUnique({
-//         where: { habitId },
-//         select: { teamId: true, goalCount: true },
-//     });
-//
-//     if (!habit?.teamId) {
-//         // 팀 없음 → 개인 체크로 대체
-//         return checkPersonalHabit(habitIdStr);
-//     }
-//
-//     const teamId = habit.teamId;
-//     const goal = habit.goalCount ?? BigInt(0);
-//
-//     // 개인 기록도 남김
-//     await prisma.habitHistory.upsert({
-//         where: { uq_habit_user_day: { habitId, userId, checkDate: today } },
-//         update: {},
-//         create: { habitId, userId, checkDate: today, isCompleted: true },
-//     });
-//
-//     // 내 팀 기여(팀원 1일 1회)
-//     await prisma.habitTeamHistory.upsert({
-//         where: { uq_team_habit_day: { habitId, teamId, checkDate: today } },
-//         update: {},
-//         create: { habitId, teamId, checkDate: today, isCompleted: true },
-//     });
-//
-//     // 오늘 팀 누계
-//     const cnt = await prisma.habitTeamHistory.count({
-//         where: { habitId, teamId, checkDate: today, isCompleted: true },
-//     });
-//
-//     if (goal > BigInt(0) && BigInt(cnt) >= goal) {
-//         // 목표 달성 → 즉시 alive + 콤보 증가
-//         await bumpComboAlive(habitId);
-//         revalidatePath(`/habits/${habitIdStr}`);
-//         return { ok: true, completed: true, count: cnt, goal: Number(goal) };
-//     } else {
-//         // 목표 미달: 상태는 일단 hungry
-//         // 콤보는 자정에 확정 실패 시 0으로 리셋
-//         await prisma.habit.update({
-//             where: { habitId },
-//             data: { rabbitStatus: "hungry" },
-//         });
-//         revalidatePath(`/habits/${habitIdStr}`);
-//         return { ok: true, completed: false, count: cnt, goal: Number(goal) };
-//     }
-// }
 
 // 매일 자정 최종 판정
 export async function finalizeTodayIfMissed(habitIdStr: string) {
@@ -324,20 +251,6 @@ export async function finalizeTodayIfMissed(habitIdStr: string) {
     return { ok: true, success };
 }
 
-// // 제출 액션
-// export async function submitCheckAction(habitIdStr: string) {
-//     const habit = await prisma.habit.findUnique({
-//         where: { habitId: BigInt(habitIdStr) },
-//         select: { teamId: true },
-//     });
-//     const res = habit?.teamId
-//         ? await checkTeamHabit(habitIdStr)
-//         : await checkPersonalHabit(habitIdStr);
-//
-//     revalidatePath(`/habits/${habitIdStr}`);
-//     return res;
-// }
-
 export type HabitCheckState = {
     ok: boolean;
     error?: string
@@ -345,14 +258,6 @@ export type HabitCheckState = {
     count?: number
     goal?: number
 }
-
-// 제출 2
-// export async function submitCheckAction(habitIdStr: string) {
-//     const res = await checkHabit(habitIdStr);
-//     revalidatePath(`/habits/${habitIdStr}`);
-//     revalidatePath(`/main/${habitIdStr}`);
-//     return res;
-// }
 
 // 제출 3
 export async function submitCheckAction(formData: FormData) {
@@ -366,5 +271,10 @@ export async function submitCheckAction(formData: FormData) {
     revalidatePath(`/habits/${id}`);
     revalidatePath(`/main/${id}`);
 
-    return { ok: true };
+    return {
+        ok: true,
+        completed: res.completed,
+        count: res.count,
+        goal: res.goal,
+    };
 }

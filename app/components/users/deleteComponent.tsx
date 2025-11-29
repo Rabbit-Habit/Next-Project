@@ -74,7 +74,7 @@ function DeleteComponent({ nickname }: DeleteProps) {
             <ConfirmModal
                 open={isCheckModalOpen}
                 onConfirm={handleDelete}
-                onCancel={() => setIsCheckModalOpen(false)}
+                onOpenChange={() => setIsCheckModalOpen(false)}
                 title="회원 탈퇴"
                 description="정말로 탈퇴하시겠습니까?"
                 isPending={isPending}
@@ -83,7 +83,7 @@ function DeleteComponent({ nickname }: DeleteProps) {
             {/* 탈퇴 실패 모달 */}
             <FailModal
                 open={isFailModalOpen}
-                onClose={() => {setIsFailModalOpen(false)}}
+                onOpenChange={() => {setIsFailModalOpen(false)}}
                 title="회원 탈퇴 실패"
                 description={
                     <>

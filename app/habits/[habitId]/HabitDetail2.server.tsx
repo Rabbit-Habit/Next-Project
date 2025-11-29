@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import MonthlySectionComponent from "@/app/components/stat/MonthlySectionComponent";
 import AccumulatedStatComponent from "@/app/components/stat/AccumulatedStatComponent";
 import {redirect} from "next/navigation";
+import HabitCheckButton from "@/app/components/habits/habitCheckButton";
 
 export default function HabitDetail2({
                                          habit,
@@ -64,7 +65,7 @@ export default function HabitDetail2({
         const result = await submitCheckAction(formData);
 
         // 🔸 여기서 result를 보고 분기하면 됨
-        if (!result.ok && result.error === "ALREADY_DONE") {
+        if (!result.ok && result.reason === "ALREADY_DONE") {
             // 이미 체크한 경우
             redirect(`/habits/${hid}?already=1`);
         }
@@ -171,15 +172,12 @@ export default function HabitDetail2({
                         ✏️ 습관 수정하기
                     </Link>
 
-                    <form action={checkAction} className="flex-1">
-                        <input type="hidden" name="habitId" value={habit.id} />
-                        <button
-                            type="submit"
-                            className="w-full px-4 py-2.5 rounded-2xl text-sm font-semibold bg-[#F1C9A5] text-[#4A2F23] border border-[#E0B693] hover:bg-[#E4B88F] transition"
-                        >
-                            🥕 오늘 습관 체크
-                        </button>
-                    </form>
+                    <div className="flex-1 w-full px-4 py-2.5 rounded-2xl text-sm font-semibold bg-[#F1C9A5] text-[#4A2F23] border border-[#E0B693] hover:bg-[#E4B88F] transition text-center">
+                        <HabitCheckButton
+                            habitId={habit.id}
+                            action={submitCheckAction}
+                        />
+                    </div>
                 </section>
 
                 <div className="border-t border-[#EBD4BC] pt-4" />

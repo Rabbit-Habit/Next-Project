@@ -170,7 +170,7 @@ export default function HabitEditForm({ habit }: { habit: HabitEditable }) {
             {/* 실패 모달 */}
             <FailModal
                 open={openFail}
-                onClose={() => setOpenFail(false)}
+                onOpenChange={() => setOpenFail(false)}
                 title="실패"
                 description={errMsg ?? "문제가 발생했어요."}
             />
@@ -178,7 +178,7 @@ export default function HabitEditForm({ habit }: { habit: HabitEditable }) {
             {/* 삭제 확인 모달 */}
             <ConfirmModal
                 open={openDelete}
-                onCancel={() => setOpenDelete(false)}
+                onOpenChange={() => setOpenDelete(false)}
                 onConfirm={handleDelete}
                 title="삭제하시겠어요?"
                 description={

@@ -212,7 +212,7 @@ export default function NotificationsListComponent({ notifications,}: { notifica
             {/* 삭제 모달 */}
             <ConfirmModal
                 open={openDelete}
-                onCancel={() => setOpenDelete(false)}
+                onOpenChange={() => setOpenDelete(false)}
                 onConfirm={handleDelete}
                 title="삭제하시겠어요?"
                 description={
