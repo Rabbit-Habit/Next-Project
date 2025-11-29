@@ -45,7 +45,7 @@ function MypageComponent({ id, nickname, imageUrl }: MypageProps) {
             <ConfirmModal
                 open={isLogoutModalOpen}
                 onConfirm={handleLogout}
-                onCancel={() => setIsLogoutModalOpen(false)}
+                onOpenChange={() => setIsLogoutModalOpen(false)}
                 title="로그아웃"
                 description="정말로 로그아웃하시겠습니까?"
             />

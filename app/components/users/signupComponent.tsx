@@ -126,7 +126,7 @@ function SignupComponent() {
             {/* 회원가입 실패 모달 */}
             <FailModal
                 open={isFailModalOpen}
-                onClose={() => {
+                onOpenChange={() => {
                     setDebouncedConfirm("")
                     setFormState(initFormState)
                     setIsFailModalOpen(false)

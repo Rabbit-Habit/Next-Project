@@ -71,7 +71,7 @@ function RabbitStatusModal({ open, onClose, rabbitName, rabbitStatus, combo, hab
             <ConfirmModal
                 open={confirmOpen}
                 onConfirm={handleConfirm}
-                onCancel={() => setConfirmOpen(false)}
+                onOpenChange={() => setConfirmOpen(false)}
                 title="토끼에게 밥을 줄까요?"
                 description="오늘 하루 체크로 기록됩니다."
             />

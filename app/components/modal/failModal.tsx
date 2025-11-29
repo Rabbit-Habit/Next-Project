@@ -5,17 +5,16 @@ import { Button } from "@/components/ui/button";
 
 interface FailModalProps {
     open: boolean;
-    onClose: () => void;
+    onOpenChange: (open: boolean) => void;
     title: string;
     description: string | React.ReactNode;
 }
 
-function FailModal({ open, onClose, title, description }: FailModalProps) {
+function FailModal({ open, onOpenChange, title, description }: FailModalProps) {
     return (
-        <Dialog open={open} onOpenChange={onClose}>
+        <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-md rounded-2xl shadow-lg bg-white border border-pink-200 animate-fade-in">
                 <DialogHeader className="flex flex-col items-center gap-6">
-                    {/* 귀여운 느낌 아이콘 */}
                     <div className="text-4xl">❌</div>
 
                     <DialogTitle className="text-[#4A2F23] text-xl font-bold text-center">
@@ -28,7 +27,7 @@ function FailModal({ open, onClose, title, description }: FailModalProps) {
 
                 <DialogFooter className="flex justify-center mt-4">
                     <Button
-                        onClick={onClose}
+                        onClick={() => onOpenChange(false)}
                         className="bg-[#F1C9A5]  text-[#4A2F23] border border-[#E0B693] hover:bg-[#E4B88F] transition text-md py-5 font-semibold rounded-xl"
                     >
                         확인
@@ -38,5 +37,6 @@ function FailModal({ open, onClose, title, description }: FailModalProps) {
         </Dialog>
     );
 }
+
 
 export default FailModal

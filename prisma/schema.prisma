@@ -156,7 +156,7 @@ model HabitTeamHistory {
   habit Habit @relation(fields: [habitId], references: [habitId], onDelete: Cascade)
 
   // 팀 하루 1행만 존재
-  @@unique([habitId, teamId, checkDate], name: "uq_team_habit_day")
+  // @@unique([habitId, teamId, checkDate], name: "uq_team_habit_day")
   @@index([habitId, teamId, checkDate])
   @@map("tbl_habit_team_history")
 }

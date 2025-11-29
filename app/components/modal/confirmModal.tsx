@@ -5,19 +5,18 @@ import { Button } from "@/components/ui/button";
 
 interface ConfirmModalProps {
     open: boolean;
+    onOpenChange: (open: boolean) => void;   // 변경
     onConfirm: () => void;
-    onCancel: () => void;
     title: string;
     description: string | React.ReactNode;
     isPending?: boolean;
 }
 
-function ConfirmModal({ open, onConfirm, onCancel, title, description, isPending }: ConfirmModalProps) {
+function ConfirmModal({ open, onOpenChange, onConfirm, title, description, isPending }: ConfirmModalProps) {
     return (
-        <Dialog open={open} onOpenChange={onCancel}>
+        <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-md rounded-2xl shadow-lg bg-white border border-gray-200 animate-fade-in">
                 <DialogHeader className="flex flex-col items-center gap-6">
-                    {/* 경고 또는 확인 아이콘 */}
                     <div className="text-4xl">⚠️</div>
 
                     <DialogTitle className="text-[#4A2F23] text-xl font-bold text-center">
@@ -30,7 +29,7 @@ function ConfirmModal({ open, onConfirm, onCancel, title, description, isPending
 
                 <DialogFooter className="flex flex-row justify-center gap-4 mt-4">
                     <Button
-                        onClick={onCancel}
+                        onClick={() => onOpenChange(false)}
                         disabled={isPending}
                         className="border border-[#E0B693] bg-white/70 text-sm text-[#5C3B28] hover:bg-[#FFF2E0] transition text-md py-2 px-6 font-semibold rounded-xl flex-1"
                     >
@@ -55,5 +54,6 @@ function ConfirmModal({ open, onConfirm, onCancel, title, description, isPending
         </Dialog>
     );
 }
+
 
 export default ConfirmModal

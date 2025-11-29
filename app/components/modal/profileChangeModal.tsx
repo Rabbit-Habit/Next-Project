@@ -43,7 +43,7 @@ function ProfileChangeModal({ open, onClose }: ProfileChangeProps) {
             {/* 닉네임 변경 실패 모달 */}
             <FailModal
                 open={isFailModalOpen}
-                onClose={() => {
+                onOpenChange={() => {
                     setIsFailModalOpen(false)
                 }}
                 title="프로필 이미지 변경 실패"

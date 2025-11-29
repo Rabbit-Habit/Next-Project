@@ -109,7 +109,7 @@ function PasswordEditComponent({ isSocial }: PasswordEditProps) {
             {/* 소셜 로그인 비밀번호 변경 불가능 모달 */}
             <FailModal
                 open={isSocialModalOpen}
-                onClose={() => {
+                onOpenChange={() => {
                     setIsSocialModalOpen(false)
                     router.back()
                 }}
@@ -125,7 +125,7 @@ function PasswordEditComponent({ isSocial }: PasswordEditProps) {
             {/* 비밀번호 변경 실패 모달 */}
             <FailModal
                 open={isFailModalOpen}
-                onClose={() => {
+                onOpenChange={() => {
                     setFormState(initFormState)
                     setIsFailModalOpen(false)
                 }}

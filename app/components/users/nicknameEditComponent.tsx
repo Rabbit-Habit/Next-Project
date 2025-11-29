@@ -55,7 +55,7 @@ function NicknameEditComponent({ nickname }: NicknameEditProps) {
             {/* 닉네임 변경 실패 모달 */}
             <FailModal
                 open={isFailModalOpen}
-                onClose={() => {
+                onOpenChange={() => {
                     setNewNickname("")
                     setIsNicknameChecked(null)
                     setIsFailModalOpen(false)
