@@ -3,7 +3,9 @@
 import Link from "next/link";
 import Header from "@/app/components/common/header";
 import WeeklyStampComponent from "@/app/components/stat/WeeklyStampComponent";
-import {useEffect, useRef, useState} from "react";
+import { useState } from "react";
+import Pagination from "@/app/components/common/pagination";
+import {useRouter, useSearchParams} from "next/navigation";
 
 type Item = {
     id: string;
@@ -14,6 +16,16 @@ type Item = {
     teamName: string | null;
     regDate: string | null;
     isTeamHabit: boolean;
+};
+
+type Props = {
+    personalItems: Item[];
+    teamItems: Item[];
+    personalPage: number;
+    teamPage: number;
+    personalTotalPages: number;
+    teamTotalPages: number;
+    sort: "recent" | "title" | "rabbit";
 };
 
 function statusClass(s: Item["rabbitStatus"]) {
@@ -38,61 +50,37 @@ function statusLabel(s: Item["rabbitStatus"]) {
     }
 }
 
-export default function HabitsList({ initialItems }: { initialItems: Item[] }) {
 
-    const [items, setItems] = useState(initialItems);
-    const [cursor, setCursor] = useState(
-        initialItems.length > 0 ? initialItems[initialItems.length - 1].id : null
-    );
-    const [sort, setSort] = useState<SortType>("recent");
-    const [showSort, setShowSort] = useState(false)
-    const [activeTab, setActiveTab] = useState<"personal" | "team">("personal");
-    const loaderRef = useRef(null);
-    const [loading, setLoading] = useState(false)
+export default function HabitsList({
+                                       personalItems,
+                                       teamItems,
+                                       personalPage,
+                                       teamPage,
+                                       personalTotalPages,
+                                       teamTotalPages,
+                                       sort,
+                                   }: Props) {
 
-    // 무한 스크롤 감지
-    useEffect(() => {
-        if (!loaderRef.current) return;
-
-        const observer = new IntersectionObserver(
-            async (entries) => {
-                if (entries[0].isIntersecting && cursor && !loading) {
-                    setLoading(true);
-
-                    const res = await fetch(
-                        `/api/habits/list?cursor=${cursor}&sort=${sort}&limit=5`
-                    );
-                    const data = await res.json();
-
-                    setItems((prev) => [...prev, ...data.items]);
-                    setCursor(data.nextCursor);
-                    setLoading(false);
-                }
-            },
-            { threshold: 1.0 }
-        );
-
-        observer.observe(loaderRef.current);
-
-        return () => observer.disconnect();
-    }, [cursor, sort, loading]);
-
-    // 정렬 옵션 변경 시 초기화
     type SortType = "recent" | "title" | "rabbit";
 
-    const handleSortChange = async (value: SortType) => {
-        setSort(value);
+    const [sortState, setSortState] = useState<SortType>(sort);
+    const [showSort, setShowSort] = useState(false)
+    const [activeTab, setActiveTab] = useState<"personal" | "team">("personal");
 
-        const res = await fetch(`/api/habits/list?sort=${value}&limit=5`);
-        const data = await res.json();
+    const items = activeTab === "personal" ? personalItems : teamItems;
 
-        setItems(data.items);
-        setCursor(data.nextCursor);
+    const router = useRouter();
+    const params = useSearchParams();
+
+    // 정렬 api 연동
+    const handleSortChange = (value: SortType) => {
+        const pPersonal = params.get("pagePersonal") ?? "1";
+        const pTeam = params.get("pageTeam") ?? "1";
+
+        router.push(
+            `/habits?pagePersonal=${pPersonal}&pageTeam=${pTeam}&sort=${value}`   // ⭐ 추가됨
+        );
     };
-
-    const filtered = items.filter((i) =>
-        activeTab === "team" ? i.isTeamHabit : !i.isTeamHabit
-    );
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-[#FFF5E6] via-[#FAE8CA] to-[#F5D7B0]">
@@ -118,14 +106,14 @@ export default function HabitsList({ initialItems }: { initialItems: Item[] }) {
                                 "h-10 rounded-full flex items-center text-xl border transition " +
                                 (showSort
                                     ? "bg-[#FFF9F1] border-[#E0B693] shadow-sm"
-                                    : "bg-[#FFF9F1] border-gray-300 text-gray-500")
+                                    : "bg-[#FFF9F1] border-[#F0D4B2] text-gray-500")
                             }
                         >
                             <span className="text-[15px] mt-[2px] ml-[10px] mr-[5px] opacity-70">▼</span>
                             <span className="mr-[10px]">
-                                {sort === "recent" && "🕒"}
-                                {sort === "title" && "🔤"}
-                                {sort === "rabbit" && "🐰"}
+                                {sortState === "recent" && "🕒"}
+                                {sortState === "title" && "🔤"}
+                                {sortState === "rabbit" && "🐰"}
                             </span>
 
                         </button>
@@ -164,7 +152,7 @@ export default function HabitsList({ initialItems }: { initialItems: Item[] }) {
                         )}
                     </div>
 
-                    {/* ✅ 탭 영역 */}
+                    {/* 탭 UI */}
                     <div className="flex rounded-3xl bg-[#FBE4CF] p-1 gap-1 flex-1 ">
                         <button
                             type="button"
@@ -194,7 +182,7 @@ export default function HabitsList({ initialItems }: { initialItems: Item[] }) {
                 </div>
 
                 {/* 리스트 / 비어있을 때 문구 */}
-                {filtered.length === 0 ? (
+                {items.length === 0 ? (
                     <div className="mt-4 rounded-3xl bg-[#FFF9F1] border border-[#F0D4B2] px-5 py-6 shadow-sm text-sm text-[#6D4B36]">
                         {activeTab === "personal" ? (
                             <>
@@ -210,7 +198,7 @@ export default function HabitsList({ initialItems }: { initialItems: Item[] }) {
                     </div>
                 ) : (
                     <ul className="mt-2 space-y-4">
-                        {filtered.map((h) => (
+                        {items.map((h) => (
                             <li key={h.id}>
                                 <Link
                                     href={`/habits/${h.id}`}
@@ -251,10 +239,20 @@ export default function HabitsList({ initialItems }: { initialItems: Item[] }) {
                     </ul>
                 )}
 
-                {/* 무한 스크롤 트리거 */}
-                <div ref={loaderRef} className="h-10"></div>
-
-                {loading && <p className="text-center">로딩중...</p>}
+                {/* 페이지네이션 — 탭별로 구분 */}
+                {activeTab === "personal" ? (
+                    <Pagination
+                        page={personalPage}
+                        totalPages={personalTotalPages}
+                        type="personal"
+                    />
+                ) : (
+                    <Pagination
+                        page={teamPage}
+                        totalPages={teamTotalPages}
+                        type="team"
+                    />
+                )}
 
             </div>
         </div>
