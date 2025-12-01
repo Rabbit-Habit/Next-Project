@@ -5,7 +5,6 @@ import { submitCheckAction } from "@/app/habits/[habitId]/actions";
 import { Suspense } from "react";
 import MonthlySectionComponent from "@/app/components/stat/MonthlySectionComponent";
 import AccumulatedStatComponent from "@/app/components/stat/AccumulatedStatComponent";
-import {redirect} from "next/navigation";
 import HabitCheckButton from "@/app/components/habits/habitCheckButton";
 
 export default function HabitDetail2({
@@ -55,24 +54,6 @@ export default function HabitDetail2({
         const day = String(d.getDate()).padStart(2, "0");
         return `${year}.${month}.${day}`;
     };
-
-    async function checkAction(formData: FormData) {
-        "use server";
-
-        const hid = String(formData.get("habitId") ?? "");
-        if (!hid) return;
-
-        const result = await submitCheckAction(formData);
-
-        // 🔸 여기서 result를 보고 분기하면 됨
-        if (!result.ok && result.reason === "ALREADY_DONE") {
-            // 이미 체크한 경우
-            redirect(`/habits/${hid}?already=1`);
-        }
-
-        // 첫 체크 성공 or 기타 케이스
-        redirect(`/habits/${hid}?checked=1`);
-    }
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-[#FFF5E6] via-[#FAE8CA] to-[#F5D7B0]">
