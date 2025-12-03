@@ -22,7 +22,7 @@ async function MypagePage() {
     return (
         <div>
             <Header title="마이페이지" backUrl={"/main"}/>
-            <MypageComponent id={user!.id} nickname={user!.nickname} imageUrl={user!.imageUrl}/>
+            <MypageComponent id={user!.id!} nickname={user!.nickname} imageUrl={user!.imageUrl}/>
         </div>
     )
 }

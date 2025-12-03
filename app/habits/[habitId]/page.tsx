@@ -63,6 +63,4 @@ export default async function HabitDetailPage(
     } as const;
 
     return <HabitDetail2 habit={dto} memberCount={memberCount} />
-
-
 }
