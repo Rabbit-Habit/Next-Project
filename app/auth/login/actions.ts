@@ -72,7 +72,7 @@ async function verifyUser(id: string, password: string) : Promise<number> {
 
     const isMatch = await bcrypt.compare(password, user.password)
     if (!isMatch) {
-        throw new Error("비밀번호가 올바르지 않습니다.");
+        throw new Error("비밀번호가 올바르지 않습니다.")
     }
 
     return user.userId
@@ -80,10 +80,10 @@ async function verifyUser(id: string, password: string) : Promise<number> {
 
 export async function loadByCookie (): Promise<number> {
     // 쿠키 객체 가져오기
-    const cookieObj = await cookies();
+    const cookieObj = await cookies()
 
     // 쿠키에서 uid 꺼내기
     const uid = cookieObj.get("uid")?.value
 
-    return uid ? Number(uid) : -1;
+    return uid ? Number(uid) : -1
 }
