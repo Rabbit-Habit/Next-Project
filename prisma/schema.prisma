@@ -25,6 +25,7 @@ model User {
   isDeleted    Boolean        @default(false) @map("is_deleted")
   regDate      DateTime       @default(now()) @map("reg_date")
   modDate      DateTime       @updatedAt @map("mod_date")
+  fcmToken     String?        @map("fcm_token")
   chatMessage  ChatMessage[]
   chatRead     ChatRead[]
   Notification Notification[]

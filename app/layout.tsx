@@ -28,7 +28,9 @@ export default async function RootLayout({children,}: Readonly<{ children: React
         <html lang="en">
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
                 <ClientProvider session={session}>
-                    {children}
+                    <FcmProvider>
+                        {children}
+                    </FcmProvider>
                 </ClientProvider>
             </body>
         </html>
