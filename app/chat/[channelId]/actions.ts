@@ -2,7 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import {getServerSession} from "next-auth";
-import {authOptions} from "@/app/api/auth/[...nextauth]/route";
+import {authOptions} from '@/lib/auth';
 
 // 메시지 전송 액션
 export async function sendMessageAction(formData: FormData): Promise<{ ok: boolean; error?: string; message?: any }> {

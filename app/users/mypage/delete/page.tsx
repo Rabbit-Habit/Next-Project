@@ -2,10 +2,9 @@
 
 import Header from "@/app/components/common/header";
 import DeleteComponent from "@/app/components/users/deleteComponent";
-import {cookies} from "next/headers";
 import prisma from "@/lib/prisma";
 import {getServerSession} from "next-auth";
-import {authOptions} from "@/app/api/auth/[...nextauth]/route";
+import {authOptions} from '@/lib/auth';
 
 async function DeletePage() {
     const session = await getServerSession(authOptions)
