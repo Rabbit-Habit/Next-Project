@@ -157,7 +157,7 @@ export default function HabitForm() {
                     title="팀 생성 완료!"
                     description={
                         <div className="space-y-3 text-sm">
-                            <p>아래 초대코드를 팀원과 공유해 함께 토끼를 키워보세요 🐰🤎</p>
+                            <p>초대코드를 팀원과 공유해 토끼를 키워보세요 🐰🤎</p>
                             <div className="flex items-center gap-2 bg-[#FDF4E3] border border-[#E5C9A6] rounded-xl px-3 py-2">
                                 <span className="font-mono text-xs text-[#5C3B28]">
                                     {generatedInvite}

@@ -1,8 +1,8 @@
 {
   "crons": [
     {
-      "path": "/api/cron/finalize",
-      "schedule": "5 15 * * *"
+      "path": "/api/cron/finalize?secret=rabbit-habit-secret-token",
+      "schedule": "0 15 * * *"
     }
   ]
 }
