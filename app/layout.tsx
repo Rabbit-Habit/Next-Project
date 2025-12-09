@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ClientProvider from "@/app/components/clientProvider";
+import FcmProvider from "@/app/providers/FcmProvider";
 import {getServerSession} from "next-auth";
 import {authOptions} from '@/lib/auth';
 
@@ -28,7 +29,9 @@ export default async function RootLayout({children,}: Readonly<{ children: React
         <html lang="en">
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
                 <ClientProvider session={session}>
-                    {children}
+                    <FcmProvider>
+                        {children}
+                    </FcmProvider>
                 </ClientProvider>
             </body>
         </html>
