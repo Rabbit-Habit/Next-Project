@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import HabitsList from "@/app/components/habits/habitsList.client";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import {getServerSession} from "next-auth";
+import {authOptions} from "@/lib/auth";
 
 export default async function HabitsPage({
                                              searchParams
