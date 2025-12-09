@@ -30,7 +30,7 @@ export const authOptions: AuthOptions = {
                     where: { id },
                 })
 
-                if (!user) {
+                if (!user || !user.id) {
                     throw new Error("아이디가 존재하지 않습니다.")
                 }
 
@@ -40,7 +40,17 @@ export const authOptions: AuthOptions = {
                     throw new Error("비밀번호가 올바르지 않습니다.")
                 }
 
-                return user
+                return {
+                    userId: user.userId,
+                    id: user.id,
+                    password: user.password,
+                    isSocial: user.isSocial,
+                    imageUrl: user.imageUrl,
+                    nickname: user.nickname,
+                    isDeleted: user.isDeleted,
+                    regDate: user.regDate,
+                    modDate: user.modDate,
+                }
             },
         }),
         KakaoProvider({
