@@ -10,12 +10,198 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model User {
-  id    Int    @id @default(autoincrement())
-  name  String
-  email String @unique
+  userId       Int            @id @default(autoincrement()) @map("user_id")
+  id           String?        @unique
+  password     String?
+  isSocial     Boolean        @default(false) @map("is_social")
+  imageUrl     String?        @map("image_url")
+  nickname     String         @unique
+  isDeleted    Boolean        @default(false) @map("is_deleted")
+  regDate      DateTime       @default(now()) @map("reg_date")
+  modDate      DateTime       @updatedAt @map("mod_date")
+  chatMessage  ChatMessage[]
+  chatRead     ChatRead[]
+  Notification Notification[]
+
+  @@map("tbl_user")
+}
+
+// 채팅
+model ChatChannel {
+  channelId     Int       @id @default(autoincrement()) @map("channel_id")
+  habitId       BigInt    @unique @map("habit_id")
+  regDate       DateTime  @default(now()) @map("reg_date")
+  lastMessageAt DateTime? @map("last_message_at")
+
+  // 관계
+  messages ChatMessage[]
+  chatRead ChatRead[]
+
+  // 습관 삭제시 같이 삭제
+  habit Habit @relation(fields: [habitId], references: [habitId], onDelete: Cascade)
+
+  @@map("tbl_chat_channels")
+}
+
+model ChatMessage {
+  messageId Int      @id @default(autoincrement()) @map("message_id")
+  channelId Int      @map("channel_id")
+  userId    Int      @map("user_id")
+  content   String
+  regDate   DateTime @default(now()) @map("reg_date")
+
+  // 관계 (삭제시 Cascade 추가)
+  channel ChatChannel @relation(fields: [channelId], references: [channelId], onDelete: Cascade)
+  user    User        @relation(fields: [userId], references: [userId])
+
+  // 인덱스 추가 (channel_id + reg_date)
+  @@index([channelId, regDate], name: "idx_channel_date")
+  @@map("tbl_chat_message")
+}
+
+model ChatRead {
+  readId     Int      @id @default(autoincrement()) @map("read_id")
+  userId     Int      @map("user_id")
+  channelId  Int      @map("channel_id")
+  lastReadAt DateTime @default(now()) @map("last_read_at")
+
+  user    User        @relation(fields: [userId], references: [userId])
+  channel ChatChannel @relation(fields: [channelId], references: [channelId], onDelete: Cascade)
+
+  @@unique([userId, channelId])
+  @@map("tbl_chat_read")
+}
+
+model Team {
+  teamId  BigInt       @id @default(autoincrement()) @map("team_id")
+  name    String?
+  regDate DateTime     @default(now())
+  habit   Habit?
+  members TeamMember[]
+
+  @@map("tbl_team")
+}
+
+/// Habit 테이블
+model Habit {
+  /// PK
+  habitId      BigInt       @id @default(autoincrement()) @map("habit_id")
+  userId       Int          @map("user_id")
+  teamId       BigInt?      @unique @map("team_id")
+  /// 내용
+  title        String?      @db.VarChar(255)
+  goalDetail   String?      @map("goal_detail") @db.VarChar(255)
+  goalCount    BigInt?      @map("goal_count")
+  rabbitName   String       @map("rabbit_name") @db.VarChar(255)
+  rabbitStatus RabbitStatus @default(alive) @map("rabbit_status")
+  inviteCode   String?      @map("invite_code") @db.VarChar(255)
+  combo        BigInt       @default(0)
+  regDate      DateTime     @default(now()) @map("reg_date")
+  modDate      DateTime     @updatedAt @map("mod_date")
+  isAttendance Boolean?     @map("is_attendance")
+  /// 위치(소수점)
+  targetLat    Decimal?     @map("target_lat") @db.Decimal(9, 6)
+  targetLng    Decimal?     @map("target_lng") @db.Decimal(9, 6)
+
+  //관계
+  team        Team?        @relation(fields: [teamId], references: [teamId])
+  chatChannel ChatChannel?
+
+  histories    HabitHistory[]
+  teamLogs     HabitTeamHistory[]
+  Notification Notification[]
+
+  @@index([userId])
+  @@map("tbl_habit")
+}
+
+// 습관 개인 기록
+model HabitHistory {
+  historyId BigInt @id @default(autoincrement()) @map("history_id")
+  habitId   BigInt @map("habit_id")
+  userId    Int    @map("user_id")
+
+  // 체크한 '날짜(KST 기준으로 계산한 하루)'를 Date 타입으로 저장
+  checkDate DateTime @map("check_date") @db.Date
+
+  // 성공 여부
+  isCompleted Boolean @default(true) @map("is_completed")
+
+  regDate DateTime @default(now()) @map("reg_date")
+
+  habit Habit @relation(fields: [habitId], references: [habitId], onDelete: Cascade)
+
+  // 같은 날에 같은 유저가 같은 습관을 2번 체크하지 못하게
+  @@unique([habitId, userId, checkDate], name: "uq_habit_user_day")
+  @@index([habitId, checkDate])
+  @@map("tbl_habit_history")
+}
+
+// 습관 팀별 기록
+model HabitTeamHistory {
+  HistoryTeamId BigInt   @id @default(autoincrement()) @map("history_team_id")
+  habitId       BigInt   @map("habit_id")
+  teamId        BigInt   @map("team_id")
+  checkDate     DateTime @map("check_date") @db.Date
+  isCompleted   Boolean  @default(true) @map("is_completed")
+  // userIds       Json?    @map("user_ids") // ["1","2","3"]
+  regDate       DateTime @default(now()) @map("reg_date")
+
+  habit Habit @relation(fields: [habitId], references: [habitId], onDelete: Cascade)
+
+  // 팀 하루 1행만 존재
+  @@unique([habitId, teamId, checkDate], name: "uq_team_habit_day")
+  @@index([habitId, teamId, checkDate])
+  @@map("tbl_habit_team_history")
+}
+
+model TeamMember {
+  teamMemberId BigInt   @id @default(autoincrement()) @map("team_member_id")
+  teamId       BigInt
+  userId       Int
+  role         TeamRole
+  regDate      DateTime @default(now())
+  team         Team     @relation(fields: [teamId], references: [teamId])
+
+  @@unique([teamId, userId], name: "teamId_userId")
+  @@map("tbl_team_member")
+}
+
+model Notification {
+  notificationId BigInt @id @default(autoincrement()) @map("notification_id")
+
+  userId  Int    @map("user_id")
+  habitId BigInt @map("habit_id")
+
+  sendTime   String   @map("send_time") // "HH:MM"
+  daysOfWeek String[] @map("days_of_week") // ["MON","TUE"] or ["EVERY"]
+  memo       String?  @map("memo")
+
+  isActive Boolean @default(true) @map("is_active")
+
+  regDate DateTime @default(now()) @map("reg_date")
+  modDate DateTime @updatedAt @map("mod_date")
+
+  // 관계
+  user  User  @relation(fields: [userId], references: [userId])
+  habit Habit @relation(fields: [habitId], references: [habitId], onDelete: Cascade)
+
+  @@map("tbl_notification")
+}
+
+enum RabbitStatus {
+  alive
+  hungry
+  escaped
+}
+
+enum TeamRole {
+  LEADER
+  MEMBER
 }
