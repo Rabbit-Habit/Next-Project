@@ -4,7 +4,7 @@ import Header from "@/app/components/common/header";
 import MypageComponent from "@/app/components/users/mypageComponent";
 import prisma from "@/lib/prisma";
 import {getServerSession} from "next-auth";
-import {authOptions} from "@/app/api/auth/[...nextauth]/route";
+import {authOptions} from '@/lib/auth';
 
 async function MypagePage() {
     const session = await getServerSession(authOptions)

@@ -3,7 +3,7 @@
 import prisma from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import {getServerSession} from "next-auth";
-import {authOptions} from "@/app/api/auth/[...nextauth]/route";
+import {authOptions} from '@/lib/auth';
 
 export async function ChangePasswordAction(formData: FormData): Promise<EditResult> {
     const oldPassword = String(formData.get("oldPassword"))

@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import ChatListComponent from "@/app/components/chat/chatListComponent";
 import {getServerSession} from "next-auth";
-import {authOptions} from "@/app/api/auth/[...nextauth]/route";
+import {authOptions} from '@/lib/auth';
 
 export default async function ChatListPage() {
 

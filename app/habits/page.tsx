@@ -1,32 +1,33 @@
 import prisma from "@/lib/prisma";
 import HabitsList from "@/app/components/habits/habitsList.client";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import {getServerSession} from "next-auth";
+import {authOptions} from "@/lib/auth";
 
-export default async function HabitsPage({
-                                             searchParams
-                                         }: {
-    searchParams: {
+interface HabitsPageProps {
+    searchParams: Promise<{
         pagePersonal?: string;
         pageTeam?: string;
         sort?: "recent" | "title" | "rabbit";
-    }
-}) {
+    }>;
+}
 
+export default async function HabitsPage({searchParams}: HabitsPageProps) {
     const session = await getServerSession(authOptions);
     const userId = Number(session?.user.uid);
 
     if (!userId) return <div>로그인이 필요합니다.</div>;
 
+    const resolvedSearchParams = await searchParams;
+
     // 페이지 번호 (기본값 1)
     const pageSize = 3;
-    const personalPage  = Number(searchParams.pagePersonal ?? "1");
-    const teamPage = Number(searchParams.pageTeam ?? "1");
+    const personalPage  = Number(resolvedSearchParams.pagePersonal ?? "1");
+    const teamPage = Number(resolvedSearchParams.pageTeam ?? "1");
 
     const personalSkip = (personalPage - 1) * pageSize;
     const teamSkip = (teamPage - 1) * pageSize;
 
-    const sort = searchParams.sort ?? "recent";
+    const sort = resolvedSearchParams.sort ?? "recent";
 
     // 정렬 옵션 → Prisma orderBy 매핑
     let orderBy: any = {};
