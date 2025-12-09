@@ -1,11 +1,10 @@
 "use server"
 
-import {cookies} from "next/headers";
 import prisma from "@/lib/prisma";
 import Header from "@/app/components/common/header";
 import NicknameEditComponent from "@/app/components/users/nicknameEditComponent";
 import {getServerSession} from "next-auth";
-import {authOptions} from "@/app/api/auth/[...nextauth]/route";
+import {authOptions} from '@/lib/auth';
 
 async function NicknamePage() {
     const session = await getServerSession(authOptions)

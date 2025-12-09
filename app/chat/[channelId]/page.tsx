@@ -2,7 +2,7 @@ import prisma from "@/lib/prisma";
 import ChatClientComponent from "@/app/components/chat/chatClientComponent";
 import {updateReadStatusAction} from "@/app/chat/[channelId]/actions";
 import {getServerSession} from "next-auth";
-import {authOptions} from "@/app/api/auth/[...nextauth]/route";
+import {authOptions} from '@/lib/auth';
 import {redirect} from "next/navigation";
 
 
