@@ -3,7 +3,7 @@
 import MainComponent from "@/app/components/main/mainComponent";
 import {notFound} from "next/navigation";
 import {toBigint} from "@/app/habits/[habitId]/page";
-import prisma from "@/backend/lib/prisma";
+import prisma from "@/lib/prisma";
 
 async function MainPage(
     props : { params: Promise<{ habitId: string }> }

@@ -2,7 +2,7 @@
 
 import {getServerSession} from "next-auth";
 import {authOptions} from '@/lib/auth';
-import prisma from "@/backend/lib/prisma";
+import prisma from "@/lib/prisma";
 import HabitDropdown from "@/app/components/common/habitDropdown";
 
 async function MainLayout({children}: { children: React.ReactNode }) {

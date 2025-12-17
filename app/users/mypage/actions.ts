@@ -1,7 +1,7 @@
 "use server"
 
 import {createSupabaseClient} from "@/lib/supabase";
-import prisma from "@/backend/lib/prisma";
+import prisma from "@/lib/prisma";
 import {uploadProfileImage} from "@/app/users/signup/actions";
 import {revalidatePath} from "next/cache";
 import {getServerSession} from "next-auth";

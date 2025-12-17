@@ -1,4 +1,4 @@
-import prisma from "@/backend/lib/prisma";
+import prisma from "@/lib/prisma";
 import ChatListComponent from "@/app/components/chat/chatListComponent";
 import {getServerSession} from "next-auth";
 import {authOptions} from '@/lib/auth';

@@ -1,5 +1,5 @@
 import {NextRequest, NextResponse} from "next/server";
-import prisma from "@/backend/lib/prisma";
+import prisma from "@/lib/prisma";
 import { finalizeTodayIfMissed } from "@/app/habits/[habitId]/actions";
 
 export async function GET(req: NextRequest) {

@@ -1,6 +1,6 @@
 "use server"
 
-import prisma from "@/backend/lib/prisma";
+import prisma from "@/lib/prisma";
 import Header from "@/app/components/common/header";
 import NicknameEditComponent from "@/app/components/users/nicknameEditComponent";
 import {getServerSession} from "next-auth";

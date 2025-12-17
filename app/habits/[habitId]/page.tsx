@@ -1,5 +1,5 @@
 import {notFound} from "next/navigation";
-import prisma from "@/backend/lib/prisma";
+import prisma from "@/lib/prisma";
 import HabitDetail2 from "@/app/habits/[habitId]/HabitDetail2.server";
 
 export function toBigint(id: string) {

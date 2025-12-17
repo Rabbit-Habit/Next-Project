@@ -1,4 +1,4 @@
-import prisma from "@/backend/lib/prisma";
+import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import NotificationsListComponent from "@/app/components/notifications/notificationsListComponent";
 import {authOptions} from '@/lib/auth';
