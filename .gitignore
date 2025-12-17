@@ -45,8 +45,8 @@ yarn-error.log*
 next-env.d.ts
 
 # prisma (자동 생성물)
-/prisma/generated/
-/prisma/client/
+/backend/prisma/generated/
+/backend/prisma/client/
 /app/generated/prisma
 
 # IDEs / Editors

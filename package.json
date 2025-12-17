@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "prisma generate && next build",
+    "build": "backend/prisma generate && next build",
     "start": "next start",
     "dev:server": "ts-node -r tsconfig-paths/register backend/server.ts"
   },
