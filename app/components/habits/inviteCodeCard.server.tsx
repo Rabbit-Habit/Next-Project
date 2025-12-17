@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import prisma from "@/backend/lib/prisma";
 import {revalidatePath} from "next/cache";
 import InviteCodeCard from "@/app/components/habits/inviteCodeCard";
 

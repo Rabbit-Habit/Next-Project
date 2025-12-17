@@ -1,5 +1,5 @@
 
-import prisma from "@/lib/prisma";
+import prisma from "@/backend/lib/prisma";
 import NotificationsAddComponent from "@/app/components/notifications/notificationsAddComponent";
 import {getServerSession} from "next-auth";
 import {authOptions} from '@/lib/auth';

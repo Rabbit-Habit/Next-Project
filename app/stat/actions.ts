@@ -1,5 +1,5 @@
 'use server'
-import prisma from "@/lib/prisma"
+import prisma from "@/backend/lib/prisma"
 
 // 공통 유틸 함수
 

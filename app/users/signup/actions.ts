@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import prisma from "@/backend/lib/prisma";
 import bcrypt from "bcrypt";
 import {createSupabaseClient} from "@/lib/supabase";
 

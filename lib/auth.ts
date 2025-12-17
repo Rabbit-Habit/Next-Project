@@ -2,7 +2,7 @@ import {AuthOptions} from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import KakaoProvider from "next-auth/providers/kakao";
 import { adjectives, colors, animals, uniqueNamesGenerator, Config } from 'unique-names-generator';
-import prisma from "@/lib/prisma";
+import prisma from "@/backend/lib/prisma";
 import bcrypt from "bcrypt";
 
 const customConfig: Config = {

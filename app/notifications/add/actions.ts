@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import prisma from "@/backend/lib/prisma";
 
 // 알람 생성
 export async function createNotificationAction(formData: FormData) {

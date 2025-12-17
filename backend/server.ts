@@ -1,6 +1,6 @@
 import { createServer } from "http";
 import { WebSocketServer } from "ws";
-import prisma from "../lib/prisma";
+import prisma from "./lib/prisma";
 
 /**
  * 🚀 Railway 전용 WebSocket 서버

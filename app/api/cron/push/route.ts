@@ -1,7 +1,7 @@
 // 푸시 알림 전송 API
 // 현재 시간과 알림 설정을 비교해 푸시를 발송하는 역할
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import prisma from "@/backend/lib/prisma";
 import admin from "@/lib/firebaseAdmin";
 
 export async function GET(req: Request) {

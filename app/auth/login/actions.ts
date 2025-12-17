@@ -2,7 +2,7 @@
 
 import {createJWT} from "@/app/util/jwtUtil";
 import {cookies} from "next/headers";
-import prisma from "@/lib/prisma";
+import prisma from "@/backend/lib/prisma";
 import bcrypt from "bcrypt";
 
 export async function LoginAction(formData: FormData): Promise<LoginResult> {
