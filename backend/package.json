@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "postinstall": "prisma generate --schema=../prisma/schema.prisma",
+    "postinstall": "prisma generate",
     "start": "ts-node server.ts"
   },
   "dependencies": {
