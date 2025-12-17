@@ -1,4 +1,4 @@
-import prisma from "@/backend/lib/prisma";
+import prisma from "@/lib/prisma";
 import HabitsList from "@/app/components/habits/habitsList.client";
 import {getServerSession} from "next-auth";
 import {authOptions} from "@/lib/auth";

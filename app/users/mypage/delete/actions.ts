@@ -2,7 +2,7 @@
 
 import {getServerSession} from "next-auth";
 import {authOptions} from '@/lib/auth';
-import prisma from "@/backend/lib/prisma";
+import prisma from "@/lib/prisma";
 
 export async function UserDeleteAction(formData: FormData): Promise<DeleteResult> {
     const session = await getServerSession(authOptions)

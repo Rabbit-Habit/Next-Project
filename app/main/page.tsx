@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation';
 import {getServerSession} from "next-auth";
 import {authOptions} from '@/lib/auth';
-import prisma from "@/backend/lib/prisma";
+import prisma from "@/lib/prisma";
 
 export default async function MainRootPage() {
     const session = await getServerSession(authOptions)

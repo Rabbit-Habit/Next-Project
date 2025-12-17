@@ -2,7 +2,7 @@
 
 import {getServerSession} from "next-auth";
 import {authOptions} from '@/lib/auth';
-import prisma from "@/backend/lib/prisma";
+import prisma from "@/lib/prisma";
 import {revalidatePath} from "next/cache";
 
 // 3일 굶으면 토끼 탈출
